@@ -102,7 +102,8 @@
                                 <tr>
                                     <th>Product</th>
                                     <th>Quantity</th>
-                                    <th>Price</th>
+                                    <th>Unit Price</th>
+                                    <th>Weight</th>
                                     <th>Total</th>
                                 </tr>
                             </thead>
@@ -124,7 +125,8 @@
                                         <td>
                                             <span class="badge bg-primary fs-6 px-3 py-2">{{ $item->quantity }}</span>
                                         </td>
-                                        <td>₹{{ number_format($item->price, 2) }}</td>
+                                        <td>₹{{ number_format(($item->price ?? ($item->total_price / max(1, (int)$item->quantity))), 2) }}</td>
+                                        <td>{{ $item->product->weight }} kg</td>
                                         <td class="fw-bold">₹{{ number_format($item->total_price, 2) }}</td>
                                     </tr>
                                 @endforeach
