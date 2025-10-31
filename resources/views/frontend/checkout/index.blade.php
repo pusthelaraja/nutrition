@@ -800,6 +800,8 @@
                 document.getElementById('pincode').value = selectedAddress.postal_code || '';
                 document.getElementById('country').value = selectedAddress.country || 'India';
             }
+            // Update the shipping address preview immediately
+            try { updateReviewSection(); } catch (e) { /* ignore */ }
         }
 
         function clearAddressFields() {
