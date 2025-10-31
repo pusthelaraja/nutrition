@@ -24,7 +24,7 @@ class OrderController extends Controller
 
         // If user is logged in, verify they own this order
         if (Auth::guard('customer')->check()) {
-            if ($order->user_id !== Auth::guard('customer')->id()) {
+            if ((int) $order->user_id !== (int) Auth::guard('customer')->id()) {
                 abort(403, 'Unauthorized access to order.');
             }
         }
@@ -51,7 +51,7 @@ class OrderController extends Controller
 
             // If user is logged in, verify they own this order
             if (Auth::guard('customer')->check()) {
-                if ($order->user_id !== Auth::guard('customer')->id()) {
+                if ((int) $order->user_id !== (int) Auth::guard('customer')->id()) {
                     abort(403, 'Unauthorized access to order.');
                 }
             }

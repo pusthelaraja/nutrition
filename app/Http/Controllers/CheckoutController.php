@@ -562,7 +562,7 @@ class CheckoutController extends Controller
         ]);
 
         $order = Order::findOrFail($request->input('order_id'));
-        if (!Auth::guard('customer')->check() || $order->user_id !== Auth::guard('customer')->id()) {
+        if (!Auth::guard('customer')->check() || (int) $order->user_id !== (int) Auth::guard('customer')->id()) {
             \Log::warning('Razorpay verify forbidden: auth/order mismatch', [
                 'logged_in' => Auth::guard('customer')->check(),
                 'logged_in_customer_id' => Auth::guard('customer')->check() ? Auth::guard('customer')->id() : null,
