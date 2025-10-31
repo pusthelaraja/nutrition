@@ -230,11 +230,11 @@
                                 <div class="action-buttons">
                                     <div class="d-grid gap-2">
                                         <button class="btn btn-success btn-lg rounded-pill fw-bold py-3"
-                                                onclick="addToCart({{ $product->id }})"
+                                                onclick="addToCart({{ $product->id }}, document.getElementById('quantity') ? document.getElementById('quantity').value : 1, event)"
                                                 style="font-size: 1.1rem;">
                                             <i class="fas fa-shopping-cart me-2"></i>Add to Cart
                                         </button>
-                                        <div class="row g-2">
+                                        {{-- <div class="row g-2">
                                             <div class="col-6">
                                                 <button class="btn btn-outline-primary rounded-pill w-100 py-2"
                                                         onclick="addToWishlist({{ $product->id }})">
@@ -247,7 +247,7 @@
                                                     <i class="fas fa-share-alt me-1"></i>Share
                                                 </button>
                                             </div>
-                                        </div>
+                                        </div> --}}
                                     </div>
                                 </div>
                             </div>
@@ -278,7 +278,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            {{-- <div class="col-md-6">
                                 <div class="info-item d-flex align-items-center">
                                     <i class="fas fa-calendar text-primary me-2"></i>
                                     <div>
@@ -286,8 +286,8 @@
                                         <strong class="text-dark">{{ $product->created_at->format('M d, Y') }}</strong>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
+                            </div> --}}
+                            {{-- <div class="col-md-6">
                                 <div class="info-item d-flex align-items-center">
                                     <i class="fas fa-truck text-primary me-2"></i>
                                     <div>
@@ -295,7 +295,7 @@
                                         <strong class="text-dark">Free Delivery</strong>
                                     </div>
                                 </div>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                 </div>
@@ -305,7 +305,7 @@
 </section>
 
 <!-- Enhanced Product Tabs Section -->
-<section class="py-5 bg-white">
+{{-- <section class="py-5 bg-white">
     <div class="container">
         <div class="row">
             <div class="col-12">
@@ -428,10 +428,10 @@
             </div>
         </div>
     </div>
-</section>
+</section> --}}
 
 <!-- Related Products Section -->
-@if($relatedProducts->count() > 0)
+{{-- @if($relatedProducts->count() > 0)
 <section class="py-5">
     <div class="container">
         <h3 class="mb-4">Related Products</h3>
@@ -472,7 +472,7 @@
                                 @endif
                             </div>
 
-                            <button class="add-to-cart-btn" onclick="addToCart({{ $relatedProduct->id }})">
+                            <button class="add-to-cart-btn" onclick="addToCart({{ $relatedProduct->id }}, 1, event)">
                                 <i class="fas fa-shopping-cart me-2"></i>Add to Cart
                             </button>
                         </div>
@@ -482,16 +482,16 @@
         </div>
     </div>
 </section>
-@endif
+@endif --}}
 
 @endsection
 
-@section('scripts')
+@push('scripts')
     </div>
 </section>
 
 <!-- Related Products Section -->
-<section class="py-5 bg-light">
+{{-- <section class="py-5 bg-light">
     <div class="container">
         <div class="row">
             <div class="col-12">
@@ -537,7 +537,7 @@
             </div>
         </div>
     </div>
-</section>
+</section> --}}
 
 <!-- Image Modal -->
 <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
@@ -731,4 +731,4 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 </script>
-@endsection
+@endpush

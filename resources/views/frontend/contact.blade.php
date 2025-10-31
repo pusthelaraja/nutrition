@@ -321,30 +321,66 @@
 @push('scripts')
 <script>
     // Contact form submission
+    function showToast(message, variant = 'success'){
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.className = 'position-fixed top-0 end-0 p-3';
+            container.style.zIndex = 1080;
+            document.body.appendChild(container);
+        }
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = `
+            <div class="toast align-items-center text-bg-${variant} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>`;
+        const toastEl = wrapper.firstElementChild;
+        container.appendChild(toastEl);
+        const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+        toast.show();
+        toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+    }
+
     document.getElementById('contact-form').addEventListener('submit', function(e) {
         e.preventDefault();
-
-        // Get form data
-        const formData = new FormData(this);
-
-        // Show loading state
-        const submitBtn = this.querySelector('button[type="submit"]');
+        const form = this;
+        const formData = new FormData(form);
+        const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
         submitBtn.disabled = true;
 
-        // Simulate form submission
-        setTimeout(() => {
-            // Show success message
-            alert('Thank you for your message! We will get back to you within 24 hours.');
-
-            // Reset form
-            this.reset();
-
-            // Reset button
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(async resp => {
+            if (!resp.ok) {
+                const data = await resp.json().catch(() => ({}));
+                const msg = data.message || 'Failed to submit. Please check the form.';
+                throw new Error(msg);
+            }
+            return resp.json();
+        })
+        .then(data => {
+            showToast(data.message || 'Submitted successfully', 'success');
+            form.reset();
+        })
+        .catch(err => {
+            showToast(err.message || 'Submission error', 'danger');
+        })
+        .finally(() => {
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
-        }, 2000);
+        });
     });
 
     // Form validation

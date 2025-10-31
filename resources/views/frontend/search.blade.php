@@ -200,7 +200,7 @@
                                     <span class="current-price">₹2,499</span>
                                     <span class="original-price">₹3,299</span>
                                 </div>
-                                <button class="add-to-cart-btn" onclick="addToCart(1)">
+                                <button class="add-to-cart-btn" onclick="addToCart(1, 1, event)">
                                     <i class="fas fa-cart-plus me-2"></i>Add to Cart
                                 </button>
                             </div>
@@ -221,7 +221,7 @@
                                     <span class="current-price">₹899</span>
                                     <span class="original-price">₹1,199</span>
                                 </div>
-                                <button class="add-to-cart-btn" onclick="addToCart(2)">
+                                <button class="add-to-cart-btn" onclick="addToCart(2, 1, event)">
                                     <i class="fas fa-cart-plus me-2"></i>Add to Cart
                                 </button>
                             </div>
@@ -241,7 +241,7 @@
                                     <span class="current-price">₹1,299</span>
                                     <span class="original-price">₹1,599</span>
                                 </div>
-                                <button class="add-to-cart-btn" onclick="addToCart(3)">
+                                <button class="add-to-cart-btn" onclick="addToCart(3, 1, event)">
                                     <i class="fas fa-cart-plus me-2"></i>Add to Cart
                                 </button>
                             </div>
@@ -262,7 +262,7 @@
                                     <span class="current-price">₹599</span>
                                     <span class="original-price">₹799</span>
                                 </div>
-                                <button class="add-to-cart-btn" onclick="addToCart(4)">
+                                <button class="add-to-cart-btn" onclick="addToCart(4, 1, event)">
                                     <i class="fas fa-cart-plus me-2"></i>Add to Cart
                                 </button>
                             </div>
@@ -282,7 +282,7 @@
                                     <span class="current-price">₹1,899</span>
                                     <span class="original-price">₹2,199</span>
                                 </div>
-                                <button class="add-to-cart-btn" onclick="addToCart(5)">
+                                <button class="add-to-cart-btn" onclick="addToCart(5, 1, event)">
                                     <i class="fas fa-cart-plus me-2"></i>Add to Cart
                                 </button>
                             </div>
@@ -303,7 +303,7 @@
                                     <span class="current-price">₹1,499</span>
                                     <span class="original-price">₹1,799</span>
                                 </div>
-                                <button class="add-to-cart-btn" onclick="addToCart(6)">
+                                <button class="add-to-cart-btn" onclick="addToCart(6, 1, event)">
                                     <i class="fas fa-cart-plus me-2"></i>Add to Cart
                                 </button>
                             </div>

@@ -20,7 +20,7 @@
     <div class="container">
         <div class="row">
             <div class="col-12">
-                <h4 class="mb-2">Checkout</h4>
+                {{-- <h4 class="mb-2">Checkout</h4> --}}
             </div>
         </div>
 
@@ -48,28 +48,46 @@
                                 <h5 class="mb-0">Shipping Information</h5>
                             </div>
                             <div class="card-body">
+                                <div class="d-none">
+                                    <div class="small text-muted">Add or update your shipping address using the button below.</div>
+                                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#shippingModal" onclick="prefillShippingModal()">
+                                        <i class="fas fa-address-card me-1"></i>Add/Update Shipping Info
+                                    </button>
+                                </div>
                                 <!-- Address Selection Options -->
                                 <div class="mb-4">
                                     <h6 class="mb-3">Select Address Option</h6>
 
-                                    <!-- Option 1: Use Saved Address -->
-                                    <div class="card mb-3 border-2" id="saved-address-option">
-                                        <div class="card-header bg-light">
+                                    <!-- Control bar: Primary button + secondary radio -->
+                                    <div class="d-none">
+                                        <button type="button" class="btn btn-primary" id="btnUseSavedPrimary">
+                                            <i class="fas fa-bookmark me-2"></i>Use Saved Address
+                                        </button>
                                             <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="address_option" id="use_saved" value="saved" checked>
-                                                <label class="form-check-label fw-bold" for="use_saved">
-                                                    <i class="fas fa-bookmark me-2 text-primary"></i>Use Saved Address
+                                            <input class="form-check-input" type="radio" name="address_option" id="enter_new_top" value="new">
+                                            <label class="form-check-label fw-bold" for="enter_new_top" style="cursor:pointer;">
+                                                <i class="fas fa-plus-circle text-success me-1"></i>Enter New Address
                                                 </label>
                                             </div>
                                         </div>
+                                    <!-- Hidden address option state (saved/new) to avoid duplicate labels -->
+                                    <input type="hidden" id="address_option_state" name="address_option" value="saved">
+
+                                    <div class="row g-3 align-items-stretch">
+                                        <!-- Option 1: Use Saved Address -->
+                                        <div class="col-md-12">
+                                            <div class="card h-100 border-2" id="saved-address-option">
+                                                <div class="card-header bg-light d-none"></div>
                                         <div class="card-body" id="saved-addresses">
                                             @if($addresses && $addresses->count() > 0)
+                                                <div class="row g-3">
                                                 @foreach($addresses as $address)
-                                                <div class="card mb-2 address-card border" style="cursor: pointer;">
+                                                <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+                                                    <div class="card h-100 address-card border" style="cursor: pointer;">
                                                     <div class="card-body p-3">
                                                         <div class="form-check">
                                                             <input class="form-check-input address-radio" type="radio" name="saved_address_id"
-                                                                   id="address_{{ $address->id }}" value="{{ $address->id }}"
+                                                                   id="address_{{ $address->id }}" value="{{ $address->id }}" data-pincode="{{ $address->postal_code }}"
                                                                    {{ $address->is_default ? 'checked' : '' }}>
                                                             <label class="form-check-label w-100" for="address_{{ $address->id }}">
                                                                 <div class="d-flex justify-content-between align-items-start">
@@ -103,20 +121,24 @@
                                                                 </div>
                                                             </label>
                                                         </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 @endforeach
+                                                </div>
                                             @else
                                                 <div class="text-center text-muted py-3">
                                                     <i class="fas fa-map-marker-alt fa-2x mb-2"></i>
                                                     <p class="mb-0">No saved addresses found</p>
                                                 </div>
                                             @endif
+                                                </div>
                                         </div>
                                     </div>
 
                                     <!-- Option 2: Enter New Address -->
-                                    <div class="card border-2" id="new-address-option">
+                                        <div class="col-md-6 d-none">
+                                            <div class="card h-100 border-2" id="new-address-option">
                                         <div class="card-header bg-light">
                                             <div class="form-check">
                                                 <input class="form-check-input" type="radio" name="address_option" id="use_new" value="new">
@@ -126,99 +148,94 @@
                                             </div>
                                         </div>
                                         <div class="card-body" id="new-address-form" style="display: none;">
-                                            <div class="text-center text-muted py-3">
-                                                <i class="fas fa-edit fa-2x mb-2"></i>
-                                                <p class="mb-0">Fill in the address form below</p>
+                                            <div class="py-2">
+                                                <div class="alert alert-info d-flex align-items-center mb-0" role="alert" style="padding: .5rem .75rem;">
+                                                    <i class="fas fa-info-circle me-2"></i>
+                                                    <div class="flex-grow-1 small">You're adding a new address. It will be saved to your account automatically.</div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
-                                <!-- Contact Information -->
-                                <div class="row mb-4">
-                                    <div class="col-md-6">
-                                        <label for="first_name" class="form-label">First Name *</label>
-                                        <input type="text" class="form-control" id="first_name" name="first_name" value="{{ $customer->first_name ?? '' }}" required>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="last_name" class="form-label">Last Name *</label>
-                                        <input type="text" class="form-control" id="last_name" name="last_name" value="{{ $customer->last_name ?? '' }}" required>
                                     </div>
                                 </div>
 
-                                <div class="row mb-4">
-                                    <div class="col-md-6">
-                                        <label for="email" class="form-label">Email *</label>
-                                        <input type="email" class="form-control" id="email" name="email" value="{{ $customer->email ?? '' }}" required>
+                                <!-- Hidden shipping fields (filled via modal) -->
+                                <div id="inline-shipping-fields" style="display:none;">
+                                    <input type="hidden" id="first_name" name="first_name" value="{{ $customer->first_name ?? '' }}">
+                                    <input type="hidden" id="last_name" name="last_name" value="{{ $customer->last_name ?? '' }}">
+                                    <input type="hidden" id="email" name="email" value="{{ $customer->email ?? '' }}">
+                                    <input type="hidden" id="phone" name="phone" value="{{ $customer->phone ?? '' }}">
+                                    <input type="hidden" id="address" name="address">
+                                    <input type="hidden" id="city" name="city">
+                                    <input type="hidden" id="state" name="state">
+                                    <input type="hidden" id="pincode" name="pincode">
+                                    <input type="hidden" id="country" name="country" value="India">
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="phone" class="form-label">Phone *</label>
-                                        <input type="tel" class="form-control" id="phone" name="phone" value="{{ $customer->phone ?? '' }}" required>
-                                    </div>
-                                </div>
 
-                                <!-- Address Information -->
-                                <div class="mb-4">
-                                    <label for="address" class="form-label">Address *</label>
-                                    <input type="text" class="form-control" id="address" name="address" required>
-                                </div>
-
-                                <div class="row mb-4">
-                                    <div class="col-md-4">
-                                        <label for="city" class="form-label">City *</label>
-                                        <input type="text" class="form-control" id="city" name="city" required>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for="state" class="form-label">State *</label>
-                                        <input type="text" class="form-control" id="state" name="state" required>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label for="pincode" class="form-label">Pincode *</label>
-                                        <input type="text" class="form-control" id="pincode" name="pincode" required>
-                                    </div>
-                                </div>
-
-                                <div class="mb-4">
-                                    <label for="country" class="form-label">Country *</label>
-                                    <select class="form-control" id="country" name="country" required>
-                                        <option value="India" selected>India</option>
-                                        <option value="USA">USA</option>
-                                        <option value="UK">UK</option>
-                                        <option value="Canada">Canada</option>
-                                    </select>
+                                <!-- Shipping preview -->
+                                <div class="border rounded p-3 mb-4 bg-light" id="shipping-preview" style="display:none;">
+                                    <div class="small text-muted mb-1">Shipping to:</div>
+                                    <div id="shipping-preview-text" class="fw-semibold"></div>
                                 </div>
 
                                 <!-- Shipping Method -->
                                 <div class="mb-4">
                                     <label class="form-label">Shipping Method *</label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="shipping_method" id="standard" value="standard" checked>
-                                        <label class="form-check-label" for="standard">
-                                            <strong>Standard Delivery</strong> - 3-5 business days
-                                            <span id="standard-shipping-cost">
-                                                @if($cart->total_amount >= 500)
-                                                    (Free)
-                                                @else
-                                                    (₹50)
+                                    @if(!empty($shippingOptions))
+                                        @foreach($shippingOptions as $opt)
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="shipping_method" id="ship_{{ $opt['method_id'] }}" value="{{ $opt['method_id'] }}" data-price="{{ $opt['price'] }}" data-name="{{ $opt['method_name'] }}" data-tat="{{ $opt['tat_days'] ?? '' }}" {{ $loop->first ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="ship_{{ $opt['method_id'] }}">
+                                                <strong>{{ $opt['method_name'] }}</strong>
+                                                @if(!empty($opt['tat_days']))
+                                                    - {{ $opt['tat_days'] }} business days
                                                 @endif
-                                            </span>
-                                        </label>
+                                                (₹{{ number_format($opt['price'], 2) }})
+                                            </label>
+                                </div>
+                                        @endforeach
+                                    @else
+                                        <div class="text-muted small mb-2">No shipping rates found for your pincode. You can request a shipping quote.</div>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="radio" name="shipping_method" id="ship_enquiry" value="enquiry" checked>
+                                            <label class="form-check-label" for="ship_enquiry">
+                                                <strong>Request Shipping Quote (Enquiry)</strong>
+                                            </label>
+                                        </div>
+                                        <form method="POST" action="{{ route('checkout.enquiry') }}" class="border rounded p-3 bg-light">
+                                            @csrf
+                                            <div class="row g-2">
+                                    <div class="col-md-4">
+                                                    <label class="form-label">Name</label>
+                                                    <input type="text" name="name" class="form-control" value="{{ Auth::guard('customer')->user()->first_name ?? '' }} {{ Auth::guard('customer')->user()->last_name ?? '' }}">
                                     </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="shipping_method" id="express" value="express">
-                                        <label class="form-check-label" for="express">
-                                            <strong>Express Delivery</strong> - 1-2 business days (₹99)
-                                        </label>
+                                    <div class="col-md-4">
+                                                    <label class="form-label">Email</label>
+                                                    <input type="email" name="email" class="form-control" value="{{ Auth::guard('customer')->user()->email ?? '' }}">
                                     </div>
+                                    <div class="col-md-4">
+                                                    <label class="form-label">Phone</label>
+                                                    <input type="text" name="phone" class="form-control" value="{{ Auth::guard('customer')->user()->phone ?? '' }}">
+                                    </div>
+                                                <div class="col-md-3">
+                                                    <label class="form-label">Pincode</label>
+                                                    <input type="text" name="pincode" class="form-control" value="{{ $pincode ?? '' }}" readonly>
+                                </div>
+                                                <div class="col-md-9">
+                                                    <label class="form-label">Message (optional)</label>
+                                                    <input type="text" name="message" class="form-control" placeholder="Any note for us?">
+                                </div>
+                                    </div>
+                                            <div class="mt-3">
+                                                <button type="submit" class="btn btn-warning">Submit Enquiry</button>
+                                    </div>
+                                        </form>
+                                    @endif
                                 </div>
 
-                                <!-- Save Address -->
-                                <div class="form-check mb-4">
-                                    <input class="form-check-input" type="checkbox" id="save_address" name="save_address" value="1">
-                                    <label class="form-check-label" for="save_address">
-                                        Save this address for future orders
-                                    </label>
-                                </div>
+                                <!-- Auto-save new address (hidden) -->
+                                <input type="hidden" id="save_address" name="save_address" value="1">
 
                                 <button type="button" class="btn btn-primary" onclick="nextStep(2)">
                                     Continue to Review <i class="fas fa-arrow-right ms-2"></i>
@@ -359,20 +376,35 @@
                                 <span>Subtotal ({{ $cart->total_items }} items)</span>
                                 <span>₹{{ number_format($cart->total_amount, 2) }}</span>
                             </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Shipping</span>
+                            @if(!empty($shippingOptions))
+                            <div class="d-flex justify-content-between mb-2" id="shipping-row">
+                                <span>
+                                    Shipping
+                                    <small class="text-muted" id="shipping-label">
+                                        @if(!empty($shippingOptions))
+                                            ({{ $shippingOptions[0]['method_name'] }}@if(!empty($shippingOptions[0]['tat_days'])) - {{ $shippingOptions[0]['tat_days'] }} days @endif)
+                                        @else
+
+                                        @endif
+                                    </small>
+                                </span>
                                 <span class="text-success" id="shipping-cost">
-                                    @if($cart->shipping_amount > 0)
-                                        ₹{{ number_format($cart->shipping_amount, 2) }}
+                                    @if(!empty($shippingOptions))
+                                        ₹{{ number_format($shippingOptions[0]['price'], 2) }}
                                     @else
-                                        Free
+
                                     @endif
                                 </span>
                             </div>
+                            @else
+                            <div class="d-flex justify-content-between mb-2" id="shipping-row" style="display:none;"></div>
+                            @endif
+                            @if($gstEnabled)
                             <div class="d-flex justify-content-between mb-2">
-                                <span>Tax</span>
-                                <span>₹{{ number_format($cart->tax_amount, 2) }}</span>
+                                <span>GST ({{ (float)$gstRate }}%)</span>
+                                <span id="tax-amount">₹{{ number_format($previewTax, 2) }}</span>
                             </div>
+                            @endif
                             @if($cart->discount_amount > 0)
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Discount</span>
@@ -380,9 +412,9 @@
                             </div>
                             @endif
                             <hr>
-                            <div class="d-flex justify-content-between mb-4">
+                            <div class="d-flex justify-content-between mb-4" id="order-total-wrap">
                                 <strong>Total</strong>
-                                <strong class="text-primary" id="order-total">₹{{ number_format($cart->final_amount, 2) }}</strong>
+                                <strong class="text-primary" id="order-total">₹{{ number_format($previewTotal, 2) }}</strong>
                             </div>
 
                             <!-- Security Badges -->
@@ -479,17 +511,29 @@
                 const input = document.getElementById(field);
                 if (!input.value.trim()) {
                     input.classList.add('is-invalid');
-                    alert(`Please fill in the ${field.replace('_', ' ')} field.`);
+                    showCheckoutMessage('Missing information', `Please fill in the <strong>${field.replace('_', ' ')}</strong> field.`);
                     return false;
                 } else {
                     input.classList.remove('is-invalid');
                 }
             }
+
+            // Enforce: do not allow moving to review if pincode is not mapped
+            const shippingRadios = document.querySelectorAll('input[name="shipping_method"]');
+            if (!shippingRadios || shippingRadios.length === 0) {
+                showCheckoutMessage('Shipping not available', 'We do not have shipping rates for this pincode yet. Please change the address or submit an enquiry.');
+                return false;
+            }
+            const selected = document.querySelector('input[name="shipping_method"]:checked');
+            if (!selected || selected.value === 'enquiry') {
+                showCheckoutMessage('Shipping required', 'Please select a valid shipping method for your pincode. If no methods are available, please submit an enquiry.');
+                return false;
+            }
         } else if (step === 2) {
             // Validate review step - check terms and conditions
             const termsCheckbox = document.getElementById('terms');
             if (!termsCheckbox.checked) {
-                alert('Please agree to the Terms and Conditions to proceed.');
+                showCheckoutMessage('Terms not accepted', 'Please agree to the <strong>Terms and Conditions</strong> to proceed.');
                 termsCheckbox.focus();
                 return false;
             }
@@ -501,12 +545,12 @@
     function updateReviewSection() {
         // Update shipping address
         const shippingAddress = document.getElementById('shipping-address');
-        const firstName = document.getElementById('first_name').value;
-        const lastName = document.getElementById('last_name').value;
-        const address = document.getElementById('address').value;
-        const city = document.getElementById('city').value;
-        const state = document.getElementById('state').value;
-        const pincode = document.getElementById('pincode').value;
+        const firstName = document.getElementById('first_name')?.value || '';
+        const lastName = document.getElementById('last_name')?.value || '';
+        const address = document.getElementById('address')?.value || '';
+        const city = document.getElementById('city')?.value || '';
+        const state = document.getElementById('state')?.value || '';
+        const pincode = document.getElementById('pincode')?.value || '';
 
         shippingAddress.innerHTML = `
             <strong>${firstName} ${lastName}</strong><br>
@@ -519,44 +563,154 @@
         // No need to update it dynamically
     }
 
+    // Modal helpers for Shipping Info
+    function prefillShippingModal() {
+        const fields = ['first_name','last_name','email','phone','address','city','state','pincode','country'];
+        fields.forEach(id => {
+            const hidden = document.getElementById(id);
+            const modalField = document.getElementById('modal_'+id);
+            if (hidden && modalField) {
+                modalField.value = hidden.value || '';
+            }
+        });
+    }
+
+    function saveShippingModal() {
+        // Simple validate
+        const required = ['first_name','last_name','email','phone','address','city','state','pincode','country'];
+        for (const id of required) {
+            const el = document.getElementById('modal_'+id);
+            if (!el || !String(el.value).trim()) {
+                el?.classList.add('is-invalid');
+                el?.focus();
+                return;
+            } else {
+                el.classList.remove('is-invalid');
+            }
+        }
+
+        // Copy to hidden inputs
+        required.forEach(id => {
+            const modalField = document.getElementById('modal_'+id);
+            const hidden = document.getElementById(id);
+            if (hidden && modalField) {
+                hidden.value = modalField.value.trim();
+            }
+        });
+
+        // Update preview
+        const firstName = document.getElementById('first_name').value;
+        const lastName = document.getElementById('last_name').value;
+        const address = document.getElementById('address').value;
+        const city = document.getElementById('city').value;
+        const state = document.getElementById('state').value;
+        const pincode = document.getElementById('pincode').value;
+        const previewWrap = document.getElementById('shipping-preview');
+        const previewText = document.getElementById('shipping-preview-text');
+        if (previewWrap && previewText) {
+            previewText.innerHTML = `${firstName} ${lastName}<br>${address}<br>${city}, ${state} ${pincode}<br>India`;
+            previewWrap.style.display = 'block';
+        }
+
+        // Hide modal
+        const modalEl = document.getElementById('shippingModal');
+        const instance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        instance.hide();
+    }
+
+    // Save to account immediately (AJAX) then apply like above
+    function saveShippingToAccount() {
+        // Reuse validation from modal save
+        const required = ['first_name','last_name','email','phone','address','city','state','pincode','country'];
+        for (const id of required) {
+            const el = document.getElementById('modal_'+id);
+            if (!el || !String(el.value).trim()) {
+                el?.classList.add('is-invalid');
+                el?.focus();
+                return;
+            } else {
+                el.classList.remove('is-invalid');
+            }
+        }
+
+        // Build payload per customer.store-address
+        const payload = {
+            first_name: document.getElementById('modal_first_name').value.trim(),
+            last_name: document.getElementById('modal_last_name').value.trim(),
+            address_line_1: document.getElementById('modal_address').value.trim(),
+            address_line_2: '',
+            city: document.getElementById('modal_city').value.trim(),
+            state: document.getElementById('modal_state').value.trim(),
+            postal_code: document.getElementById('modal_pincode').value.trim(),
+            country: document.getElementById('modal_country').value,
+            phone: document.getElementById('modal_phone').value.trim(),
+            email: document.getElementById('modal_email').value.trim(),
+            is_default: false
+        };
+
+        const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+        const csrf = tokenMeta ? tokenMeta.getAttribute('content') : '';
+
+        fetch('{{ route('customer.store-address') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': csrf
+            },
+            body: JSON.stringify(payload)
+        }).then(async (res) => {
+            // some routes may return redirect HTML; try to handle JSON first
+            const ct = res.headers.get('content-type') || '';
+            if (ct.includes('application/json')) {
+                try { return await res.json(); } catch (_) { return {}; }
+            }
+            return {};
+        }).catch(() => ({})).finally(() => {
+            // After saving, also apply to hidden fields and preview so user can proceed immediately
+            saveShippingModal();
+            // Reload to reflect the new address in the saved list (simplest consistent UX)
+            setTimeout(() => window.location.reload(), 300);
+        });
+    }
+
     // Payment method is now static, no change handler needed
 
     // Shipping method change handler
+    function updateShippingSummaryFromRadio(radio){
+        const shippingCost = document.getElementById('shipping-cost');
+        const orderTotal = document.getElementById('order-total');
+        const label = document.getElementById('shipping-label');
+        const price = parseFloat(radio.getAttribute('data-price') || '0');
+        const name = radio.getAttribute('data-name') || '';
+        const tat = radio.getAttribute('data-tat') || '';
+
+        if (label) {
+            label.textContent = name ? `(${name}${tat? ' - ' + tat + ' days':''})` : '';
+        }
+
+        // GST live recompute if enabled
+        const taxAmountEl = document.getElementById('tax-amount');
+        const gstRate = {{ (float)($gstRate ?? 0) }};
+        const gstEnabled = {{ $gstEnabled ? 'true' : 'false' }};
+        let tax = 0;
+        const baseForTax = cartData.subtotal - cartData.discountAmount + price;
+        if (gstEnabled && gstRate > 0) {
+            tax = Math.round((baseForTax * (gstRate/100)) * 100) / 100;
+            if (taxAmountEl) taxAmountEl.textContent = `₹${tax.toFixed(2)}`;
+            } else {
+            if (taxAmountEl) taxAmountEl.textContent = '₹0.00';
+            }
+        const newTotal = baseForTax + tax;
+        shippingCost.textContent = price > 0 ? `₹${price.toFixed(2)}` : (price === 0 ? 'Free' : '—');
+            orderTotal.textContent = `₹${newTotal.toFixed(2)}`;
+        if (currentStep === 3) { updateReviewSection(); }
+            }
+
     document.querySelectorAll('input[name="shipping_method"]').forEach(radio => {
         radio.addEventListener('change', function() {
-            const shippingCost = document.getElementById('shipping-cost');
-            const orderTotal = document.getElementById('order-total');
-            const standardShippingLabel = document.getElementById('standard-shipping-cost');
-
-            let newShippingCost = cartData.shippingCost; // Start with cart's shipping cost
-
-            if (this.value === 'express') {
-                newShippingCost = 99; // Express delivery costs ₹99
-            } else if (this.value === 'standard') {
-                // Standard delivery: free if subtotal >= 500, otherwise ₹50
-                newShippingCost = cartData.subtotal >= 500 ? 0 : 50;
-
-                // Update the label text
-                if (standardShippingLabel) {
-                    standardShippingLabel.textContent = newShippingCost > 0 ? `(₹${newShippingCost})` : '(Free)';
-                }
-            }
-
-            // Calculate new total
-            const newTotal = cartData.subtotal + cartData.taxAmount + newShippingCost - cartData.discountAmount;
-
-            // Update display
-            if (newShippingCost > 0) {
-                shippingCost.textContent = `₹${newShippingCost.toFixed(2)}`;
-            } else {
-                shippingCost.textContent = 'Free';
-            }
-            orderTotal.textContent = `₹${newTotal.toFixed(2)}`;
-
-            // Update review section if on step 3
-            if (currentStep === 3) {
-                updateReviewSection();
-            }
+            updateShippingSummaryFromRadio(this);
         });
     });
 
@@ -669,7 +823,88 @@
                 updateCardSelection();
             }
         }
+
+        // When user selects a different saved address, reload shipping options by pincode
+        document.querySelectorAll('.address-radio').forEach(r => {
+            r.addEventListener('change', function() {
+                const pin = this.getAttribute('data-pincode');
+                if (!pin) return;
+                fetch(`{{ route('checkout.shipping-options') }}?pincode=${encodeURIComponent(pin)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const wrap = document.querySelector('.form-label + div');
+                        if (!wrap) return;
+                        // Rebuild shipping method radios
+                        const container = wrap.parentElement;
+                        const listHtml = (data.options || []).map((opt, idx) => `
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="shipping_method" id="ship_${opt.method_id}" value="${opt.method_id}" data-price="${opt.price}" ${idx===0?'checked':''}>
+                                <label class="form-check-label" for="ship_${opt.method_id}">
+                                    <strong>${opt.method_name}</strong> ${opt.tat_days ? ('- ' + opt.tat_days + ' business days') : ''} (₹${Number(opt.price).toFixed(2)})
+                                </label>
+                            </div>`).join('');
+                        wrap.innerHTML = listHtml || '<div class="text-muted small">No shipping rates for this pincode.</div>';
+
+                        // Rebind change handlers to update totals
+                        wrap.querySelectorAll('input[name="shipping_method"]').forEach(radio => {
+                            radio.addEventListener('change', function() { updateShippingSummaryFromRadio(this); });
+                        });
+
+                        // Set summary from first radio if exists
+                        const shippingRow = document.getElementById('shipping-row');
+                        const first = wrap.querySelector('input[name="shipping_method"]');
+                        if (first) {
+                            if (shippingRow) shippingRow.style.display = '';
+                            first.checked = true;
+                            updateShippingSummaryFromRadio(first);
+                        } else {
+                            if (shippingRow) shippingRow.style.display = 'none';
+                        }
+                    });
+            });
+        });
+
+        // (Removed inline "Enter New Address" beside saved addresses to avoid duplication)
+
+        // Primary button: Use Saved Address
+        const btnUseSaved = document.getElementById('btnUseSavedPrimary');
+        if (btnUseSaved) {
+            btnUseSaved.addEventListener('click', function() {
+                const state = document.getElementById('address_option_state');
+                if (state) state.value = 'saved';
+                const savedWrap = document.getElementById('saved-addresses');
+                const newFormWrap = document.getElementById('new-address-form');
+                if (savedWrap) savedWrap.style.display = 'block';
+                if (newFormWrap) newFormWrap.style.display = 'none';
+                savedWrap?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        }
+
+        // Top radio: Enter New Address -> open modal
+        const enterNewTop = document.getElementById('enter_new_top');
+        const enterNewTopLabel = document.querySelector('label[for="enter_new_top"]');
+        const openNewAddressModal = () => {
+            const state = document.getElementById('address_option_state');
+            if (state) state.value = 'new';
+            if (enterNewTop) enterNewTop.checked = true; // ensure selected
+            prefillShippingModal();
+            const modalEl = document.getElementById('shippingModal');
+            const instance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            instance.show();
+        };
+        if (enterNewTop) {
+            // open on change
+            enterNewTop.addEventListener('change', openNewAddressModal);
+            // open again on subsequent clicks even if already checked
+            enterNewTop.addEventListener('click', openNewAddressModal);
+        }
+        if (enterNewTopLabel) {
+            enterNewTopLabel.addEventListener('click', openNewAddressModal);
+        }
     });
+
+    // Smooth scroll to "Save this address" option and highlight it
+    // Auto-save: we use a hidden input. Helper functions removed.
 
     // Form submission - AJAX to avoid redirect
     document.getElementById('checkout-form').addEventListener('submit', function(e) {
@@ -796,11 +1031,86 @@
 @endpush
 
 @push('styles')
+<!-- Shipping Modal -->
+<div class="modal fade" id="shippingModal" tabindex="-1" aria-labelledby="shippingModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="shippingModalLabel"><i class="fas fa-address-card me-2"></i>Shipping Information</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">First Name *</label>
+                <input type="text" id="modal_first_name" class="form-control" value="">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Last Name *</label>
+                <input type="text" id="modal_last_name" class="form-control" value="">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Email *</label>
+                <input type="email" id="modal_email" class="form-control" value="">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Phone *</label>
+                <input type="tel" id="modal_phone" class="form-control" value="">
+            </div>
+            <div class="col-12">
+                <label class="form-label">Address *</label>
+                <input type="text" id="modal_address" class="form-control" value="">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">City *</label>
+                <input type="text" id="modal_city" class="form-control" value="">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">State *</label>
+                <input type="text" id="modal_state" class="form-control" value="">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Pincode *</label>
+                <input type="text" id="modal_pincode" class="form-control" value="">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Country *</label>
+                <select id="modal_country" class="form-control">
+                    <option value="India">India</option>
+                    <option value="USA">USA</option>
+                    <option value="UK">UK</option>
+                    <option value="Canada">Canada</option>
+                </select>
+            </div>
+        </div>
+      </div>
+      <div class="modal-footer d-flex justify-content-between">
+        <div class="text-muted small">Choose: save to your account or use once for this order.</div>
+        <div>
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-success" onclick="saveShippingToAccount()"><i class="fas fa-save me-1"></i>Save to Account</button>
+            <button type="button" class="btn btn-primary" onclick="saveShippingModal()"><i class="fas fa-check me-1"></i>Use Once</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+@endpush
+
+@push('styles')
 <style>
     /* Compact Design - No Scroll */
-    body {
-        font-size: 14px;
-    }
+    body { font-size: 14px; }
+    /* Unified typography scale */
+    h5 { font-size: 1rem; }
+    h6 { font-size: 0.95rem; }
+    .form-label { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.25rem; }
+    .form-control { font-size: 0.9rem; padding: 0.5rem 0.75rem; }
+    .form-check-label { font-size: 0.9rem; }
+    .btn { font-size: 0.9rem; padding: 0.5rem 1rem; }
+    .btn-lg { font-size: 0.9rem; padding: 0.6rem 1.2rem; }
+    .small { font-size: 0.85rem !important; }
+    .badge { font-size: 0.75rem; }
 
     .container {
         max-width: 100%;
@@ -880,41 +1190,14 @@
         padding: 0.75rem 1rem;
     }
 
-    .card-header h5 {
-        font-size: 1rem;
-        margin-bottom: 0;
-    }
+    .card-header h5 { font-size: 1rem; margin-bottom: 0; }
 
     .card-body {
         padding: 1rem;
     }
 
     /* Compact Form Elements */
-    .form-label {
-        font-size: 0.85rem;
-        font-weight: 600;
-        margin-bottom: 0.25rem;
-    }
-
-    .form-control {
-        font-size: 0.85rem;
-        padding: 0.5rem 0.75rem;
-    }
-
-    .form-check-label {
-        font-size: 0.85rem;
-    }
-
-    /* Compact Buttons */
-    .btn {
-        font-size: 0.85rem;
-        padding: 0.5rem 1rem;
-    }
-
-    .btn-lg {
-        font-size: 0.9rem;
-        padding: 0.6rem 1.2rem;
-    }
+    /* (Values unified above) */
 
     /* Compact Order Summary */
     .sticky-top {
@@ -1005,10 +1288,7 @@
         border-radius: 0.25rem !important;
     }
 
-    .badge {
-        font-size: 0.7rem;
-        padding: 0.25rem 0.5rem;
-    }
+    .badge { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
 
     .list-unstyled {
         margin-bottom: 0.25rem;
@@ -1063,4 +1343,50 @@
         }
     }
 </style>
+@endpush
+
+<!-- Checkout Message Modal -->
+<div class="modal fade" id="checkoutMsgModal" tabindex="-1" aria-labelledby="checkoutMsgModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="checkoutMsgModalLabel">Message</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="checkoutMsgBody"></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@push('scripts')
+<script>
+  function showCheckoutMessage(title, htmlBody){
+    const titleEl = document.getElementById('checkoutMsgModalLabel');
+    const bodyEl = document.getElementById('checkoutMsgBody');
+    if (titleEl) titleEl.textContent = title || 'Notice';
+    if (bodyEl) bodyEl.innerHTML = htmlBody || '';
+    const modalEl = document.getElementById('checkoutMsgModal');
+    const instance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    instance.show();
+  }
+</script>
+@if ($errors->any())
+<script>
+  document.addEventListener('DOMContentLoaded', function(){
+      const msgs = `{!! '<ul class="mb-0">'.collect($errors->all())->map(fn($e)=>'<li>'.e($e).'</li>')->implode('').'</ul>' !!}`;
+      showCheckoutMessage('Please fix the following', msgs);
+  });
+</script>
+@endif
+@if (session('error'))
+<script>
+  document.addEventListener('DOMContentLoaded', function(){
+      const msg = `{!! e(session('error')) !!}`;
+      showCheckoutMessage('Unable to proceed', msg);
+  });
+</script>
+@endif
 @endpush

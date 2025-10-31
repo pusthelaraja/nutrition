@@ -61,7 +61,7 @@
                 </div>
 
                 <div class="product-actions">
-                    <button class="btn btn-primary w-100" onclick="addToCart({{ $product->id }})">
+                    <button class="btn btn-primary w-100" onclick="addToCart({{ $product->id }}, 1, event)">
                         <i class="fas fa-shopping-cart me-2"></i>Add to Cart
                     </button>
                 </div>

@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Coupon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 
 class CartController extends Controller
@@ -64,8 +65,41 @@ class CartController extends Controller
     {
         $cart = $this->getOrCreateCart();
         $cart->load(['items.product.featuredImage', 'coupon']);
+        // Preview shipping and tax (based on default address if available)
+        $customer = Auth::guard('customer')->user();
+        $pincode = null;
+        if ($customer && method_exists($customer, 'addresses')) {
+            $defaultAddress = $customer->addresses()->orderByDesc('is_default')->orderByDesc('id')->first();
+            if ($defaultAddress) { $pincode = $defaultAddress->postal_code; }
+        }
 
-        return view('frontend.cart.index', compact('cart'));
+        $shippingOptions = [];
+        $previewShipping = 0;
+        // Compute physical and chargeable weights for summary
+        $cartWeightKg = (float) ($cart->items->sum(function ($item) {
+            $productWeight = (float) ($item->product->weight ?? 0);
+            return $productWeight * (int) $item->quantity;
+        }));
+        // DTDC-style 0.5 kg slab rounding
+        $chargeableWeightKg = $cartWeightKg > 0 ? (ceil($cartWeightKg * 2) / 2) : 0.0;
+        if ($pincode) {
+            $service = new \App\Services\ShippingService();
+            $shippingOptions = $service->getOptionsForCart($cart, $pincode, null);
+            if (!empty($shippingOptions)) {
+                $previewShipping = $shippingOptions[0]['price'];
+            }
+        }
+
+        $gstEnabled = (bool) env('GST_ENABLED', false);
+        $gstRate = (float) env('GST_RATE', 18);
+        $previewTax = 0;
+        $previewTotal = $cart->total_amount - $cart->discount_amount + $previewShipping;
+        if ($gstEnabled) {
+            $previewTax = round($previewTotal * ($gstRate/100), 2);
+            $previewTotal += $previewTax;
+        }
+
+        return view('frontend.cart.index', compact('cart', 'shippingOptions', 'previewShipping', 'gstEnabled', 'gstRate', 'previewTax', 'previewTotal', 'cartWeightKg', 'chargeableWeightKg'));
     }
 
     /**
@@ -74,7 +108,8 @@ class CartController extends Controller
     public function count()
     {
         $cart = $this->getOrCreateCart();
-        return response()->json(['count' => $cart->total_items]);
+        // Return number of distinct items, not total quantity
+        return response()->json(['count' => $cart->items()->count()]);
     }
 
     /**
@@ -126,13 +161,18 @@ class CartController extends Controller
                 ]);
             } else {
                 // Add new item
-                $cartItem = CartItem::create([
+                $itemData = [
                     'cart_id' => $cart->id,
                     'product_id' => $product->id,
                     'quantity' => $request->quantity,
                     'price' => $product->sale_price ?? $product->price,
                     'total_price' => ($product->sale_price ?? $product->price) * $request->quantity
-                ]);
+                ];
+                // Add weight snapshot if column exists
+                if (Schema::hasColumn('cart_items', 'weight_kg')) {
+                    $itemData['weight_kg'] = $product->weight;
+                }
+                $cartItem = CartItem::create($itemData);
                 \Log::info('Created new cart item', [
                     'request_id' => $requestId,
                     'cart_item_id' => $cartItem->id,
@@ -153,7 +193,8 @@ class CartController extends Controller
                 return response()->json([
                     'success' => true,
                     'message' => 'Product added to cart successfully!',
-                    'cart_count' => $cart->total_items,
+                    // Return distinct item count for UI badges
+                    'cart_count' => $cart->items()->count(),
                     'cart_total' => number_format($cart->final_amount, 2)
                 ]);
             }
@@ -193,7 +234,8 @@ class CartController extends Controller
                 'message' => 'Cart updated successfully!',
                 'item_total' => number_format($cartItem->total_price, 2),
                 'cart_total' => number_format($cartItem->cart->final_amount, 2),
-                'cart_count' => $cartItem->cart->total_items
+                // Do not increment item count when changing quantity
+                'cart_count' => $cartItem->cart->items()->count()
             ]);
         }
 
@@ -216,7 +258,7 @@ class CartController extends Controller
                 'success' => true,
                 'message' => 'Item removed from cart!',
                 'cart_total' => number_format($cart->final_amount, 2),
-                'cart_count' => $cart->total_items
+                'cart_count' => $cart->items()->count()
             ]);
         }
 

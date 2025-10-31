@@ -288,6 +288,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('admin.contact-leads.*') ? 'active' : '' }}" href="{{ route('admin.contact-leads.index') }}">
+                        <i class="fas fa-address-book"></i>
+                        <span>Contact Leads</span>
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('admin.activity-logs.*') ? 'active' : '' }}" href="{{ route('admin.activity-logs.index') }}">
                         <i class="fas fa-history"></i>
                         <span>Activity Logs</span>

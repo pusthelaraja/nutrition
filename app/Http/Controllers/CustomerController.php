@@ -153,6 +153,7 @@ class CustomerController extends Controller
             'postal_code' => 'required|string|max:20',
             'country' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
+            'email' => 'nullable|email|max:255',
             'is_default' => 'boolean',
         ]);
 
@@ -172,6 +173,7 @@ class CustomerController extends Controller
             'postal_code' => $request->postal_code,
             'country' => $request->country,
             'phone' => $request->phone,
+            'email' => $request->email,
             'is_default' => $request->is_default ?? false,
         ]);
 
@@ -196,6 +198,7 @@ class CustomerController extends Controller
             'postal_code' => 'required|string|max:20',
             'country' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
+            'email' => 'nullable|email|max:255',
             'is_default' => 'boolean',
         ]);
 
@@ -206,8 +209,15 @@ class CustomerController extends Controller
 
         $address->update($request->only([
             'first_name', 'last_name', 'address_line_1', 'address_line_2',
-            'city', 'state', 'postal_code', 'country', 'phone', 'is_default'
+            'city', 'state', 'postal_code', 'country', 'phone', 'email', 'is_default'
         ]));
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Address updated successfully!'
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Address updated successfully!');
     }
@@ -215,12 +225,19 @@ class CustomerController extends Controller
     /**
      * Delete address
      */
-    public function deleteAddress($id)
+    public function deleteAddress(Request $request, $id)
     {
         $customer = Auth::guard('customer')->user();
         $address = Address::where('customer_id', $customer->id)->where('id', $id)->firstOrFail();
 
         $address->delete();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Address deleted successfully!'
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Address deleted successfully!');
     }

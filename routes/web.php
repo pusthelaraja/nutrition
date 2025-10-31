@@ -112,7 +112,9 @@ Route::post('/cart/remove-coupon', [CartController::class, 'removeCoupon'])->nam
 Route::delete('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
 Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+Route::get('/checkout/shipping-options', [CheckoutController::class, 'shippingOptions'])->name('checkout.shipping-options');
 Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
+Route::post('/checkout/enquiry', [CheckoutController::class, 'enquiry'])->name('checkout.enquiry');
 Route::get('/order/success/{order}', [CheckoutController::class, 'success'])->name('order.success');
 
 // Razorpay payment routes
@@ -247,6 +249,9 @@ Route::prefix('admin')->name('admin.')->middleware(['admin'])->group(function ()
         Route::post('/generate-reports', [App\Http\Controllers\Admin\InventoryController::class, 'generateReports'])->name('generate-reports')->middleware(['superadmin', 'permission:view-stock-reports']);
         Route::get('/export', [App\Http\Controllers\Admin\InventoryController::class, 'export'])->name('export')->middleware(['superadmin', 'permission:view-stock-reports']);
     });
+
+    // Contact Leads
+    Route::resource('contact-leads', App\Http\Controllers\Admin\ContactLeadController::class)->middleware(['superadmin']);
 });
 
 // Laravel File Manager Routes

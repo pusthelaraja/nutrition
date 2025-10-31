@@ -4,6 +4,7 @@
 
 @section('content')
 <!-- Enhanced Breadcrumb -->
+
 <nav aria-label="breadcrumb" class="py-3" style="background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);">
     <div class="container">
         <ol class="breadcrumb mb-0">
@@ -20,7 +21,7 @@
 </nav>
 
 <!-- Cart Section -->
-<section class="py-5 bg-light">
+<section class="py-3 bg-light">
     <div class="container">
         @if($cart->isEmpty())
             <!-- Empty Cart -->
@@ -35,55 +36,66 @@
                 </a>
             </div>
         @else
-            <div class="row g-4">
+            <div class="row g-3">
                 <!-- Cart Items -->
                 <div class="col-lg-8">
-                    <div class="cart-items bg-white rounded-4 shadow-sm p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="cart-items bg-white rounded-4 shadow-sm p-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
                             <h4 class="fw-bold text-dark mb-0">
                                 <i class="fas fa-shopping-cart text-primary me-2"></i>Shopping Cart
                             </h4>
-                            <span class="badge bg-primary fs-6 px-3 py-2">{{ $cart->total_items }} {{ Str::plural('item', $cart->total_items) }}</span>
+                            <span class="badge bg-primary fs-6 px-3 py-2">{{ $cart->items->count() }} {{ Str::plural('item', $cart->items->count()) }}</span>
                         </div>
 
                         @foreach($cart->items as $item)
-                            <div class="cart-item border-bottom pb-4 mb-4" data-item-id="{{ $item->id }}">
-                                <div class="row align-items-center">
+                            @php
+                                $snapshotWeight = (float)($item->weight_kg ?? ($item->product->weight ?? 0));
+                            @endphp
+                            <div class="cart-item pb-0 mb-0" data-item-id="{{ $item->id }}" data-weight="{{ number_format($snapshotWeight, 3, '.', '') }}">
+                                <div class="row g-0 align-items-start">
                                     <!-- Product Image -->
                                     <div class="col-md-2 col-3">
-                                        <div class="product-image-container">
+                                        <div class="product-image-container" style="height: 150px !important; object-fit: cover;">
                                             @if($item->product->featured_image)
                                                 <img src="{{ $item->product->featured_image }}"
                                                      alt="{{ $item->product->name }}"
                                                      class="img-fluid rounded-3 shadow-sm"
-                                                     style="height: 80px; object-fit: cover;">
+                                                     style="height: 56px !important; object-fit: cover;">
                                             @else
                                                 <img src="https://via.placeholder.com/80x80/10b981/ffffff?text={{ urlencode(substr($item->product->name, 0, 2)) }}"
                                                      alt="{{ $item->product->name }}"
                                                      class="img-fluid rounded-3 shadow-sm"
-                                                     style="height: 80px; object-fit: cover;">
+                                                     style="height: 15px !important; object-fit: cover;">
                                             @endif
                                         </div>
                                     </div>
 
                                     <!-- Product Details -->
                                     <div class="col-md-4 col-9">
-                                        <h6 class="fw-bold text-dark mb-1">{{ $item->product->name }}</h6>
-                                        <p class="text-muted small mb-0">{{ $item->product->short_description ?? 'Premium quality product' }}</p>
-                                        @if($item->product->category)
-                                            <span class="badge bg-light text-dark small">{{ $item->product->category->name }}</span>
+                                        <h6 class="text-dark mb-1">{{ $item->product->name }}</h6>
+                                        @php
+                                            $snapshot = $item->weight_kg;
+                                            $current = (float)($item->product->weight ?? 0);
+                                            $perKg = $snapshot !== null ? (float)$snapshot : $current;
+                        						$lineKg = $perKg * (int)$item->quantity;
+                                        @endphp
+                                        <p class="text-muted small mb-0">
+                                            Weight: <strong>{{ number_format($perKg, 2) }} kg</strong>
+                                            × <span class="item-weight-qty">{{ $item->quantity }}</span> = <strong><span class="item-weight-total">{{ number_format($lineKg, 2) }}</span> kg</strong>
+                                        </p>
+                                        @if($snapshot !== null && $current > 0 && abs($current - $snapshot) > 0.0001)
+                                            <span class="badge bg-warning text-dark mt-1">Pack updated: now {{ number_format($current, 2) }} kg</span>
                                         @endif
                                     </div>
 
                                     <!-- Quantity -->
-                                    <div class="col-md-2 col-6 mt-3 mt-md-0">
+                                    <div class="col-md-2 col-6 mt-1 mt-md-0">
                                         <label class="form-label small fw-bold">Quantity</label>
                                         <div class="quantity-selector">
                                             <div class="input-group">
                                                 <button class="btn btn-outline-secondary btn-sm"
                                                         type="button"
-                                                        onclick="updateQuantity({{ $item->id }}, {{ $item->quantity - 1 }})"
-                                                        {{ $item->quantity <= 1 ? 'disabled' : '' }}>
+                                                        onclick="changeQuantity({{ $item->id }}, -1)">
                                                     <i class="fas fa-minus"></i>
                                                 </button>
                                                 <input type="number"
@@ -94,8 +106,7 @@
                                                        onchange="updateQuantity({{ $item->id }}, this.value)">
                                                 <button class="btn btn-outline-secondary btn-sm"
                                                         type="button"
-                                                        onclick="updateQuantity({{ $item->id }}, {{ $item->quantity + 1 }})"
-                                                        {{ $item->quantity >= 10 ? 'disabled' : '' }}>
+                                                        onclick="changeQuantity({{ $item->id }}, 1)">
                                                     <i class="fas fa-plus"></i>
                                                 </button>
                                             </div>
@@ -103,7 +114,7 @@
                                     </div>
 
                                     <!-- Price -->
-                                    <div class="col-md-2 col-6 mt-3 mt-md-0 text-md-end">
+                                    <div class="col-md-2 col-6 mt-2 mt-md-0 text-md-end">
                                         <div class="price-info">
                                             <div class="current-price fw-bold text-primary fs-5">
                                                 ₹{{ number_format($item->price, 2) }}
@@ -115,7 +126,7 @@
                                     </div>
 
                                     <!-- Actions -->
-                                    <div class="col-md-2 col-12 mt-3 mt-md-0 text-md-end">
+                                    <div class="col-md-2 col-12 mt-1 mt-md-0 text-md-end">
                                         <div class="action-buttons">
                                             <button class="btn btn-outline-danger btn-sm rounded-pill"
                                                     onclick="removeItem({{ $item->id }})"
@@ -129,7 +140,7 @@
                         @endforeach
 
                         <!-- Cart Actions -->
-                        <div class="cart-actions mt-4 pt-4 border-top">
+                        <div class="cart-actions mt-1 pt-2 border-top">
                             <div class="row align-items-center">
                                 <div class="col-md-6">
                                     <a href="{{ route('products.index') }}" class="btn btn-outline-primary rounded-pill">
@@ -148,13 +159,13 @@
 
                 <!-- Order Summary -->
                 <div class="col-lg-4">
-                    <div class="order-summary bg-white rounded-4 shadow-sm p-4 sticky-top" style="top: 2rem;">
+                    <div class="order-summary bg-white rounded-4 shadow-sm p-3 sticky-top" style="top: 1rem;">
                         <h5 class="fw-bold text-dark mb-4">
                             <i class="fas fa-receipt text-primary me-2"></i>Order Summary
                         </h5>
 
                         <!-- Coupon Code -->
-                        <div class="coupon-section mb-4">
+                        <div class="coupon-section mb-3">
                             <div class="input-group">
                                 <input type="text"
                                        class="form-control"
@@ -182,9 +193,18 @@
                         <!-- Order Breakdown -->
                         <div class="order-breakdown">
                             <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Subtotal ({{ $cart->total_items }} items)</span>
+                                <span class="text-muted">Subtotal ({{ $cart->items->count() }} items)</span>
                                 <span class="fw-bold">₹{{ number_format($cart->total_amount, 2) }}</span>
                             </div>
+
+                            @if(($cartWeightKg ?? 0) > 0)
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Weight
+                                        <small class="text-muted">(Chargeable {{ number_format($chargeableWeightKg, 2) }} kg)</small>
+                                    </span>
+                                    <span class="fw-bold">{{ number_format($cartWeightKg, 2) }} kg</span>
+                                </div>
+                            @endif
 
                             @if($cart->discount_amount > 0)
                                 <div class="d-flex justify-content-between mb-2 text-success">
@@ -193,23 +213,31 @@
                                 </div>
                             @endif
 
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Shipping</span>
-                                <span class="fw-bold {{ $cart->shipping_amount == 0 ? 'text-success' : '' }}">
-                                    {{ $cart->shipping_amount == 0 ? 'FREE' : '₹' . number_format($cart->shipping_amount, 2) }}
+                            @if(!empty($shippingOptions))
+                            <div class="d-flex justify-content-between mb-1" id="cart-shipping-row">
+                                <span class="text-muted">Shipping
+                                    <small class="text-muted" id="cart-shipping-label">
+                                        ({{ $shippingOptions[0]['method_name'] }}@if(!empty($shippingOptions[0]['tat_days'])) - {{ $shippingOptions[0]['tat_days'] }} days @endif)
+                                    </small>
+                                </span>
+                                <span class="fw-bold {{ ($shippingOptions[0]['price'] ?? 0) == 0 ? 'text-success' : '' }}" id="cart-shipping-cost">
+                                    {{ ($shippingOptions[0]['price'] ?? 0) == 0 ? 'FREE' : '₹' . number_format($shippingOptions[0]['price'], 2) }}
                                 </span>
                             </div>
+                            @endif
 
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Tax (GST 18%)</span>
-                                <span class="fw-bold">₹{{ number_format($cart->tax_amount, 2) }}</span>
+                            @if($gstEnabled)
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted">GST ({{ (float)$gstRate }}%)</span>
+                                <span class="fw-bold" id="cart-tax-amount">₹{{ number_format($previewTax, 2) }}</span>
                             </div>
+                            @endif
 
                             <hr>
 
-                            <div class="d-flex justify-content-between mb-4">
+                            <div class="d-flex justify-content-between mb-3">
                                 <span class="fw-bold fs-5 text-dark">Total</span>
-                                <span class="fw-bold fs-5 text-primary">₹{{ number_format($cart->final_amount, 2) }}</span>
+                                <span class="fw-bold fs-5 text-primary" id="cart-order-total">₹{{ number_format($previewTotal, 2) }}</span>
                             </div>
                         </div>
 
@@ -247,28 +275,58 @@
 </section>
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script>
 // Cart Management Functions
 function updateQuantity(itemId, quantity) {
-    if (quantity < 1 || quantity > 10) return;
+    quantity = parseInt(quantity, 10);
+    if (quantity < 1 || quantity > 10 || isNaN(quantity)) return;
 
     fetch(`/cart/update/${itemId}`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
         },
         body: JSON.stringify({ quantity: quantity })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Update the item total
-            document.querySelector(`[data-item-id="${itemId}"] .item-total`).textContent = data.item_total;
+            const itemRow = document.querySelector(`[data-item-id="${itemId}"]`);
+            if (itemRow) {
+                // Update the input's value to reflect the new quantity
+                const input = itemRow.querySelector('input[type="number"]');
+                if (input) input.value = quantity;
+                // Update the item total
+                const totalEl = itemRow.querySelector('.item-total');
+                if (totalEl) totalEl.textContent = data.item_total;
+                // Update weight total in row if present
+                const perWeight = parseFloat(itemRow.getAttribute('data-weight') || '0');
+                const weightEl = itemRow.querySelector('.item-weight-total');
+                const qtyEl = itemRow.querySelector('.item-weight-qty');
+                if (!isNaN(perWeight) && weightEl) {
+                    const lineKg = Math.round(perWeight * quantity * 100) / 100;
+                    weightEl.textContent = lineKg.toFixed(2);
+                }
+                if (qtyEl) { qtyEl.textContent = quantity; }
+            }
 
             // Update cart totals
-            document.querySelector('.order-summary .fw-bold.fs-5.text-primary').textContent = `₹${data.cart_total}`;
+            const totalElSummary = document.querySelector('.order-summary .fw-bold.fs-5.text-primary');
+            if (totalElSummary) totalElSummary.textContent = `₹${data.cart_total}`;
+
+            // Update header cart count if present
+            const headerCount = document.getElementById('cartCount');
+            if (headerCount && typeof data.cart_count !== 'undefined') headerCount.textContent = data.cart_count;
+
+            // Update badge near title
+            const itemCountBadge = document.querySelector('.badge.bg-primary');
+            if (itemCountBadge && typeof data.cart_count !== 'undefined') {
+                itemCountBadge.textContent = `${data.cart_count} ${data.cart_count === 1 ? 'item' : 'items'}`;
+            }
 
             // Show success message
             showNotification(data.message, 'success');
@@ -278,6 +336,17 @@ function updateQuantity(itemId, quantity) {
         console.error('Error:', error);
         showNotification('Error updating cart', 'error');
     });
+}
+
+function changeQuantity(itemId, delta) {
+    const row = document.querySelector(`[data-item-id="${itemId}"]`);
+    if (!row) return;
+    const input = row.querySelector('input[type="number"]');
+    const current = parseInt(input && input.value ? input.value : 1, 10) || 1;
+    let next = current + delta;
+    if (next < 1) next = 1;
+    if (next > 10) next = 10;
+    updateQuantity(itemId, next);
 }
 
 function removeItem(itemId) {
@@ -408,4 +477,4 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 </script>
-@endsection
+@endpush

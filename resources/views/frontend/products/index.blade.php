@@ -111,7 +111,7 @@
                             </div>
 
                             <!-- Sort Options -->
-                            <div class="filter-section">
+                            {{-- <div class="filter-section">
                                 <h6 class="filter-section-title">
                                     <i class="fas fa-sort me-2"></i>Sort By
                                 </h6>
@@ -137,10 +137,10 @@
                                         <label class="form-check-label" for="sort-name">Name A-Z</label>
                                     </div>
                                 </div>
-                            </div>
+                            </div> --}}
 
                             <!-- Filter Actions -->
-                            <div class="filter-actions">
+                            {{-- <div class="filter-actions">
                                 <button type="button" class="btn btn-primary w-100 mb-2" onclick="applyFilters()">
                                     <i class="fas fa-search me-2"></i>Apply Filters
                                 </button>
@@ -156,7 +156,7 @@
                                 <button type="button" class="btn btn-success w-100 mt-2" onclick="simpleFilterTest()">
                                     <i class="fas fa-check me-2"></i>Simple Test
                                 </button>
-                            </div>
+                            </div> --}}
                         </form>
                     </div>
                 </div>
@@ -283,7 +283,7 @@
                                         </div>
 
                                         <div class="product-actions">
-                                            <button class="btn btn-primary w-100" onclick="addToCart({{ $product->id }})">
+                                            <button class="btn btn-primary w-100" onclick="addToCart({{ $product->id }}, 1, event)">
                                                 <i class="fas fa-shopping-cart me-2"></i>Add to Cart
                                             </button>
                                         </div>
@@ -319,7 +319,7 @@
 </div>
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script>
 // Global functions that need to be accessible from HTML onclick attributes
 function setViewMode(mode) {
@@ -378,93 +378,70 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeFilters() {
-    console.log('Initializing filters...');
-
-    // Wait a bit to ensure DOM is fully loaded
-    setTimeout(() => {
-        const form = document.getElementById('filterForm');
-        if (!form) {
-            console.error('Filter form not found during initialization!');
-            return;
-        }
-
-        // Auto-submit form when filters change
-        const filterInputs = form.querySelectorAll('input');
-        console.log('Setting up listeners for', filterInputs.length, 'inputs');
-
-        filterInputs.forEach((input, index) => {
-            console.log(`Setting up listener for input ${index}:`, input.name, input.type);
-            input.addEventListener('change', function() {
-                console.log('Filter changed:', this.name, this.value, this.checked);
-                // Apply filters immediately when any input changes
-                applyFilters();
-            });
-        });
-    }, 100);
-}
-
-function applyFilters() {
-    console.log('applyFilters() called - using AJAX');
+    console.log('=== initializeFilters() called ===');
 
     const form = document.getElementById('filterForm');
     if (!form) {
-        console.error('Filter form not found in applyFilters!');
+        console.error('Filter form NOT found!');
         return;
     }
 
-    // Show loading state
-    showFilterLoading();
+    console.log('Filter form found!', form);
 
-    // Build filter parameters
-    const params = new URLSearchParams();
-    const checkedInputs = form.querySelectorAll('input:checked');
+    const allInputs = form.querySelectorAll('input[type="radio"], input[type="checkbox"]');
+    console.log('Found filter inputs:', allInputs.length);
 
-    console.log('Found checked inputs:', checkedInputs.length);
+    if (allInputs.length === 0) {
+        console.error('No filter inputs found!');
+        return;
+    }
 
-    checkedInputs.forEach(input => {
-        if (input.value && input.value !== '') {
-            console.log('Adding parameter:', input.name, '=', input.value);
-            params.append(input.name, input.value);
-        }
+    allInputs.forEach((input, index) => {
+        console.log(`Input ${index}:`, input.name, input.type, input.value, input.id);
+
+        input.addEventListener('change', function() {
+            console.log('=== FILTER CHANGED ===');
+            console.log('Input:', this.name, this.type, this.value, this.checked);
+
+            const params = new URLSearchParams();
+
+            // Radios: only the checked value per group
+            form.querySelectorAll('input[type="radio"]').forEach(radio => {
+                if (radio.checked && radio.value) {
+                    params.set(radio.name, radio.value);
+                    console.log('Added radio:', radio.name, '=', radio.value);
+                }
+            });
+
+            // Checkboxes: include checked ones
+            form.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+                if (chk.checked && chk.value) {
+                    params.append(chk.name, chk.value);
+                    console.log('Added checkbox:', chk.name, '=', chk.value);
+                }
+            });
+
+            const baseUrl = '{{ route('products.index') }}';
+            const queryString = params.toString();
+            const finalUrl = queryString ? `${baseUrl}?${queryString}` : baseUrl;
+
+            console.log('Navigating to:', finalUrl);
+            window.location.href = finalUrl;
+        });
+
+        console.log(`Listener attached to input ${index}`);
     });
 
-    // Make AJAX request
-    const queryString = params.toString();
-    const url = queryString ? `{{ route('products.index') }}?${queryString}` : '{{ route('products.index') }}';
+    console.log('=== initializeFilters() completed ===');
+}
 
-    console.log('Making AJAX request to:', url);
-
-    fetch(url, {
-        method: 'GET',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Update products grid
-        const currentProductsGrid = document.getElementById('productsGrid');
-        if (currentProductsGrid && data.products_html) {
-            currentProductsGrid.innerHTML = data.products_html;
-        }
-
-        // Update results info
-        const currentResultsInfo = document.querySelector('.results-info');
-        if (currentResultsInfo && data.results_info_html) {
-            currentResultsInfo.innerHTML = data.results_info_html;
-        }
-
-        // Hide loading state
-        hideFilterLoading();
-
-        console.log('Filters applied successfully');
-    })
-    .catch(error => {
-        console.error('Error applying filters:', error);
-        hideFilterLoading();
-        alert('Error applying filters. Please try again.');
-    });
+// Replace applyFilters with a no-op to avoid confusion (navigation handles it)
+function applyFilters() {
+    const form = document.getElementById('filterForm');
+    if (!form) return;
+    const evt = new Event('change');
+    const any = form.querySelector('input[type="radio"], input[type="checkbox"]');
+    if (any) any.dispatchEvent(evt);
 }
 
 function clearFilters() {
@@ -479,8 +456,9 @@ function clearFilters() {
         });
     }
 
-    // Apply filters with no parameters (clear state)
-    applyFilters();
+    // Navigate to base URL (no filters)
+    const url = '{{ route('products.index') }}';
+    window.location.href = url;
 }
 
 function showFilterLoading() {
@@ -595,4 +573,4 @@ function initializeViewMode() {
     setViewMode('grid');
 }
 </script>
-@endsection
+@endpush

@@ -71,7 +71,81 @@ class CheckoutController extends Controller
             'all_addresses_in_db' => \App\Models\Address::all()->toArray()
         ]);
 
-        return view('frontend.checkout.index', compact('cart', 'addresses', 'customer'));
+        // Build dynamic shipping options
+        $pincode = null;
+        if ($addresses && $addresses->count() > 0) {
+            $default = $addresses->firstWhere('is_default', true) ?: $addresses->first();
+            $pincode = $default?->postal_code;
+        }
+        $shippingOptions = [];
+        $previewShipping = 0;
+        if ($pincode) {
+            $service = new \App\Services\ShippingService();
+            $shippingOptions = $service->getOptionsForCart($cart, $pincode, null);
+            if (!empty($shippingOptions)) {
+                $previewShipping = $shippingOptions[0]['price'];
+            }
+        }
+        // GST preview (if registered)
+        $gstEnabled = (bool) env('GST_ENABLED', false);
+        $gstRate = (float) env('GST_RATE', 18);
+        $previewTax = 0;
+        $previewTotal = $cart->total_amount - $cart->discount_amount + $previewShipping;
+        if ($gstEnabled) {
+            $previewTax = round($previewTotal * ($gstRate/100), 2);
+            $previewTotal += $previewTax;
+        }
+
+        return view('frontend.checkout.index', compact('cart', 'addresses', 'customer', 'shippingOptions', 'previewShipping', 'gstEnabled', 'gstRate', 'previewTax', 'previewTotal'));
+    }
+
+    /**
+     * Return shipping options JSON for a given pincode (AJAX from checkout)
+     */
+    public function shippingOptions(Request $request)
+    {
+        $pincode = $request->query('pincode');
+        if (!$pincode) {
+            return response()->json(['options' => []]);
+        }
+        $customer = Auth::guard('customer')->user();
+        $cart = \App\Models\Cart::where('user_id', $customer->id)->with(['items.product','coupon'])->first();
+        if (!$cart) {
+            return response()->json(['options' => []]);
+        }
+        $service = new \App\Services\ShippingService();
+        $options = $service->getOptionsForCart($cart, $pincode, null);
+        return response()->json(['options' => $options]);
+    }
+
+    /**
+     * Store a shipping enquiry when no rates are available
+     */
+    public function enquiry(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:20',
+            'pincode' => 'required|string|max:10',
+        ]);
+
+        $customerId = Auth::guard('customer')->check() ? Auth::guard('customer')->id() : null;
+        $cart = \App\Models\Cart::where('user_id', $customerId)->with(['items.product'])->first();
+        $cartJson = $cart ? $cart->toJson() : null;
+
+        \App\Models\Enquiry::create([
+            'customer_id' => $customerId,
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+            'pincode' => $request->pincode,
+            'message' => $request->input('message'),
+            'cart_json' => $cartJson,
+            'status' => 'open'
+        ]);
+
+        return redirect()->back()->with('success', 'Thank you! We will get back to you with shipping charges for your pincode.');
     }
 
     /**
@@ -149,6 +223,39 @@ class CheckoutController extends Controller
             $shippingAddress = $this->createNewAddress($request, $customer);
         }
 
+        // Compute shipping again for safety based on selected method
+        $selectedMethodId = (int) $request->input('shipping_method');
+        $service = new \App\Services\ShippingService();
+        $zonePincode = $request->pincode ?? $request->postal_code ?? $request->input('pincode');
+
+        // Enforce: cannot place order if pincode is not mapped and no valid method selected
+        if (!$zonePincode) {
+            return redirect()->back()->with('error', 'Please provide a valid pincode. Shipping is not available without pincode.');
+        }
+
+        $opts = $service->getOptionsForCart($cart, $zonePincode, null);
+        if (empty($opts)) {
+            return redirect()->back()->with('error', 'We do not have shipping rates for this pincode yet. Please submit an enquiry or try another address.');
+        }
+
+        $match = collect($opts)->firstWhere('method_id', $selectedMethodId);
+        if (!$selectedMethodId || !$match) {
+            return redirect()->back()->with('error', 'Please select a valid shipping method for your pincode.');
+        }
+
+        $shippingAmount = $match['price'];
+
+        // GST compute if enabled
+        $gstEnabled = (bool) env('GST_ENABLED', false);
+        $gstRate = (float) env('GST_RATE', 18);
+        $subtotal = $cart->total_amount;
+        $discount = $cart->discount_amount;
+        $taxAmount = 0;
+        if ($gstEnabled) {
+            $taxBase = max(0, $subtotal - $discount + $shippingAmount);
+            $taxAmount = round($taxBase * ($gstRate/100), 2);
+        }
+
         // Create order
         $order = Order::create([
             'user_id' => $customer->id,
@@ -158,9 +265,9 @@ class CheckoutController extends Controller
             'payment_method' => $request->payment_method,
             'subtotal' => $cart->total_amount,
             'discount_amount' => $cart->discount_amount,
-            'shipping_amount' => $cart->shipping_amount,
-            'tax_amount' => $cart->tax_amount,
-            'total_amount' => $cart->final_amount,
+            'shipping_amount' => $shippingAmount,
+            'tax_amount' => $taxAmount,
+            'total_amount' => ($subtotal - $discount + $shippingAmount + $taxAmount),
             'shipping_address' => json_encode([
                 'first_name' => $shippingAddress->first_name,
                 'last_name' => $shippingAddress->last_name,

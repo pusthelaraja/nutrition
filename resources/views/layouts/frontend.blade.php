@@ -397,12 +397,13 @@
         }
 
         // Global add to cart functionality
-        function addToCart(productId, quantity = 1) {
+        function addToCart(productId, quantity = 1, ev = null) {
             console.log('addToCart called with:', { productId, quantity });
 
             // Find the actual button element (handle clicks on child elements like icons)
-            let addToCartBtn = event.target;
-            while (addToCartBtn && !addToCartBtn.classList.contains('btn')) {
+            let addToCartBtn = ev && ev.target ? ev.target : document.activeElement;
+            // Traverse up until we find a button-like element
+            while (addToCartBtn && !(addToCartBtn.classList && (addToCartBtn.classList.contains('btn') || addToCartBtn.classList.contains('add-to-cart-btn')))) {
                 addToCartBtn = addToCartBtn.parentElement;
             }
 

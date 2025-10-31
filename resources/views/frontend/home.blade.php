@@ -252,7 +252,7 @@
             @forelse($featuredProducts as $product)
                 <div class="col-lg-3 col-md-6 mb-4">
                     <div class="product-card">
-                        <div class="product-image">
+                        <div class="product-image position-relative">
                             @if($product->featured_image)
                                 <img src="{{ $product->featured_image }}" alt="{{ $product->name }}" class="img-fluid">
                             @else
@@ -266,6 +266,12 @@
                             @if($product->sale_price && $product->sale_price < $product->price)
                                 <div class="product-badge" style="background: #dc3545;">Sale</div>
                             @endif
+
+                            <a href="{{ route('products.show', $product->slug) }}"
+                               class="btn btn-sm btn-dark position-absolute top-50 start-50 translate-middle opacity-0 quick-view-btn"
+                               style="transition: opacity .2s;">
+                                <i class="fas fa-search me-1"></i> Quick View
+                            </a>
                         </div>
                         <div class="product-info">
                             <h3 class="product-title">{{ $product->name }}</h3>
@@ -279,10 +285,11 @@
                                     <span class="current-price">₹{{ number_format($product->price, 2) }}</span>
                                 @endif
                             </div>
-                            <a href="{{ route('products.show', $product->slug) }}" class="btn btn-outline-primary btn-sm me-2">
-                                <i class="fas fa-eye me-1"></i>View Details
-                            </a>
-                            <button class="add-to-cart-btn" onclick="addToCart({{ $product->id }})">
+                            @if(!is_null($product->weight))
+                                <div class="text-muted small mb-2">Weight: {{ number_format((float)$product->weight, 2) }} kg</div>
+                            @endif
+
+                            <button class="add-to-cart-btn mt-2 d-block" onclick="addToCart({{ $product->id }}, 1, event)">
                                 <i class="fas fa-cart-plus me-2"></i>Add to Cart
                             </button>
                         </div>
@@ -350,53 +357,74 @@
 </section>
 
 <!-- Why Choose Us Section -->
-<section class="section">
+<section class="section py-5" style="background: linear-gradient(180deg,#ffffff 0,#f8fafc 100%);">
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-12">
                 <h2 class="mb-4">Why Choose Nutrition Store?</h2>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <div class="d-flex align-items-start">
-                            <i class="fas fa-check-circle text-warning fa-2x me-3"></i>
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-4 shadow-sm h-100 bg-white d-flex align-items-start">
+                            <i class="fas fa-vial text-warning fa-2x me-3"></i>
                             <div>
-                                <h5>Quality Assured</h5>
-                                <p class="text-muted">All products are tested and verified for quality and authenticity.</p>
+                                <h5 class="mb-1">Quality Assured</h5>
+                                <p class="text-muted mb-0">Every batch is tested and verified for purity and safety.</p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <div class="d-flex align-items-start">
-                            <i class="fas fa-shipping-fast text-warning fa-2x me-3"></i>
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-4 shadow-sm h-100 bg-white d-flex align-items-start">
+                            <i class="fas fa-shipping-fast text-success fa-2x me-3"></i>
                             <div>
-                                <h5>Fast Delivery</h5>
-                                <p class="text-muted">Quick and reliable delivery across India.</p>
+                                <h5 class="mb-1">Fast Delivery</h5>
+                                <p class="text-muted mb-0">Reliable nationwide delivery with live tracking.</p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <div class="d-flex align-items-start">
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-4 shadow-sm h-100 bg-white d-flex align-items-start">
                             <i class="fas fa-user-md text-info fa-2x me-3"></i>
                             <div>
-                                <h5>Expert Guidance</h5>
-                                <p class="text-muted">Get advice from certified nutritionists and health experts.</p>
+                                <h5 class="mb-1">Expert Guidance</h5>
+                                <p class="text-muted mb-0">Nutritionist tips to help you choose the right products.</p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <div class="d-flex align-items-start">
+                    <div class="col-sm-6">
+                        <div class="p-3 rounded-4 shadow-sm h-100 bg-white d-flex align-items-start">
                             <i class="fas fa-shield-alt text-primary fa-2x me-3"></i>
                             <div>
-                                <h5>Secure Shopping</h5>
-                                <p class="text-muted">Safe and secure payment processing with SSL encryption.</p>
+                                <h5 class="mb-1">Secure Shopping</h5>
+                                <p class="text-muted mb-0">SSL encrypted checkout and safe payments.</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <img src="https://via.placeholder.com/500x400/fbbf24/ffffff?text=Quality+Assurance" alt="Quality Assurance" class="img-fluid rounded-3">
-            </div>
+            {{-- <div class="col-lg-6">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="ratio ratio-4x3 rounded-4 overflow-hidden shadow-sm">
+                            <img src="https://images.unsplash.com/photo-1581091215367-59ab6b3131e6?auto=format&fit=crop&w=1200&q=60" alt="Quality Assurance Lab" class="w-100 h-100 object-fit-cover">
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="ratio ratio-4x3 rounded-4 overflow-hidden shadow-sm">
+                            <img src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=60" alt="Fast Delivery" class="w-100 h-100 object-fit-cover">
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="ratio ratio-4x3 rounded-4 overflow-hidden shadow-sm">
+                            <img src="https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&w=1200&q=60" alt="Nutritionist Consultation" class="w-100 h-100 object-fit-cover">
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="ratio ratio-4x3 rounded-4 overflow-hidden shadow-sm">
+                            <img src="https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&w=1200&q=60" alt="Secure Shopping" class="w-100 h-100 object-fit-cover">
+                        </div>
+                    </div>
+                </div>
+            </div> --}}
         </div>
     </div>
 </section>
@@ -439,12 +467,85 @@
     });
 
     // Newsletter subscription
-    document.querySelector('.btn-light').addEventListener('click', function() {
-        const email = document.querySelector('input[type="email"]').value;
-        if (email) {
-            alert('Thank you for subscribing! You will receive our latest updates soon.');
-            document.querySelector('input[type="email"]').value = '';
-        }
+    (function(){
+        const btn = document.querySelector('.btn-light');
+        if (!btn) return;
+        btn.addEventListener('click', function() {
+            const email = document.querySelector('input[type="email"]').value;
+            if (email) {
+                alert('Thank you for subscribing! You will receive our latest updates soon.');
+                document.querySelector('input[type="email"]').value = '';
+            }
+        });
+    })();
+
+    // Hover: reveal quick view button
+    document.querySelectorAll('.product-card .product-image').forEach(function(imgWrap){
+        imgWrap.addEventListener('mouseenter', function(){
+            const btn = this.querySelector('.quick-view-btn');
+            if (btn) btn.style.opacity = '1';
+        });
+        imgWrap.addEventListener('mouseleave', function(){
+            const btn = this.querySelector('.quick-view-btn');
+            if (btn) btn.style.opacity = '0';
+        });
     });
+
+    // Removed delegated click to allow Quick View link to navigate to details
+
+    window.openQuickView = function(e, el){
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        const name = el.getAttribute('data-product-name') || '';
+        const image = el.getAttribute('data-product-image') || '';
+        const price = parseFloat(el.getAttribute('data-product-price') || '0');
+        const original = parseFloat(el.getAttribute('data-product-original-price') || '0');
+        const onSale = el.getAttribute('data-product-on-sale') === '1';
+        const weight = el.getAttribute('data-product-weight');
+        const url = el.getAttribute('data-product-url');
+        const id = el.getAttribute('data-product-id');
+
+        const body = document.getElementById('quickViewBody');
+        body.innerHTML = `
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <img src="${image}" alt="${name}" class="img-fluid rounded-3">
+                </div>
+                <div class="col-md-7">
+                    <h5 class="mb-2">${name}</h5>
+                    <div class="mb-2">
+                        ${onSale ? `<span class="h5 text-success fw-bold">₹${price.toFixed(2)}</span> <span class="text-muted text-decoration-line-through">₹${original.toFixed(2)}</span>` : `<span class="h5 text-primary fw-bold">₹${price.toFixed(2)}</span>`}
+                    </div>
+                    ${weight ? `<div class="text-muted mb-2">Weight: ${parseFloat(weight).toFixed(2)} kg</div>` : ''}
+                    <div class="d-flex gap-2 mt-3">
+                        <button class="btn btn-primary" onclick="addToCart(${id}, 1, event)"><i class="fas fa-cart-plus me-1"></i>Add to Cart</button>
+                        <a class="btn btn-outline-secondary" href="${url}"><i class="fas fa-eye me-1"></i>View Details</a>
+                    </div>
+                </div>
+            </div>`;
+
+        const modalEl = document.getElementById('quickViewModal');
+        const instance = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+        instance.show();
+    }
+
+    // No JS needed for feature images; using direct, stable URLs.
 </script>
+<style>
+    .product-card .product-image { position: relative; }
+    .product-card .quick-view-btn { z-index: 3; pointer-events: auto; }
+    .product-card .product-image:hover .quick-view-btn { opacity: 1 !important; }
+</style>
 @endpush
+
+<!-- Quick View Modal -->
+<div class="modal fade" id="quickViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Quick View</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="quickViewBody"></div>
+        </div>
+    </div>
+    </div>

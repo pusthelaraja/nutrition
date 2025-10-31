@@ -437,6 +437,7 @@ body {
     opacity: 0;
     transition: opacity 0.3s ease;
     z-index: 1;
+    pointer-events: none;
 }
 
 .product-card:hover {
@@ -948,6 +949,8 @@ body {
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
+    position: relative;
+    z-index: 5;
 }
 
 .add-to-cart-btn:hover {
