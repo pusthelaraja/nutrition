@@ -536,6 +536,23 @@ class CheckoutController extends Controller
      */
     public function verifyRazorpayPayment(Request $request)
     {
+        \Log::info('Razorpay verify hit', [
+            'request_all' => $request->all(),
+            'headers' => [
+                'host' => $request->getHost(),
+                'origin' => $request->headers->get('origin'),
+                'referer' => $request->headers->get('referer'),
+                'user_agent' => $request->userAgent(),
+                'content_type' => $request->headers->get('content-type'),
+                'x_requested_with' => $request->headers->get('x-requested-with'),
+            ],
+            'session_id' => session()->getId(),
+            'auth' => [
+                'is_authenticated' => Auth::guard('customer')->check(),
+                'customer_id' => Auth::guard('customer')->check() ? Auth::guard('customer')->id() : null,
+            ],
+        ]);
+
         $request->validate([
             'order_id' => 'required|integer',
             'razorpay_payment_id' => 'required|string',
@@ -545,6 +562,15 @@ class CheckoutController extends Controller
 
         $order = Order::findOrFail($request->input('order_id'));
         if (!Auth::guard('customer')->check() || $order->user_id !== Auth::guard('customer')->id()) {
+            \Log::warning('Razorpay verify forbidden: auth/order mismatch', [
+                'logged_in' => Auth::guard('customer')->check(),
+                'logged_in_customer_id' => Auth::guard('customer')->check() ? Auth::guard('customer')->id() : null,
+                'order_user_id' => $order->user_id,
+                'order_id' => $order->id,
+            ]);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+            }
             abort(403);
         }
 
