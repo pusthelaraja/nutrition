@@ -403,7 +403,8 @@ class CheckoutController extends Controller
         $order->load('customer');
 
         // Ensure the user owns the order
-        if (!Auth::guard('customer')->check() || $order->user_id !== Auth::guard('customer')->id()) {
+        // Use non-strict comparison (cast) to avoid type mismatch between string/int IDs in prod
+        if (!Auth::guard('customer')->check() || (int) $order->user_id !== (int) Auth::guard('customer')->id()) {
             abort(403);
         }
 
