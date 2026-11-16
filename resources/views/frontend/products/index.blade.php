@@ -9,8 +9,8 @@
         <div class="row mb-4">
             <div class="col-12">
                 <div class="page-header">
-                    <h1 class="page-title">Our Products</h1>
-                    <p class="page-subtitle">Discover our wide range of premium nutrition products</p>
+                    <h1 class="page-title">{{ request('search') ? 'Results for “'.request('search').'”' : (request('sale') ? 'Offers' : 'Our Products') }}</h1>
+                    <p class="page-subtitle">{{ request('search') ? 'Products matching your search' : 'Discover our wide range of premium nutrition products' }}</p>
                 </div>
             </div>
         </div>
@@ -30,6 +30,9 @@
 
                     <div class="filters-content" id="filtersContent">
                         <form method="GET" id="filterForm" action="{{ route('products.index') }}">
+                            @if(request('search'))
+                                <input type="hidden" name="search" value="{{ request('search') }}">
+                            @endif
                             <!-- Categories Filter -->
                             <div class="filter-section">
                                 <h6 class="filter-section-title">
@@ -225,7 +228,7 @@
                                 <div class="product-card-modern">
                                     <div class="product-image-container">
                                         @if($product->featured_image)
-                                            <img src="{{ $product->featured_image }}" alt="{{ $product->name }}" class="product-image">
+                                            <img src="{{ $product->featured_image }}" alt="{{ $product->name }}" class="product-image" loading="lazy" decoding="async" width="300" height="300">
                                         @else
                                             <img src="https://via.placeholder.com/300x300?text={{ urlencode($product->name) }}" alt="{{ $product->name }}" class="product-image">
                                         @endif

@@ -3,7 +3,7 @@
         <div class="product-card-modern">
             <div class="product-image-container">
                 @if($product->featured_image)
-                    <img src="{{ $product->featured_image }}" alt="{{ $product->name }}" class="product-image">
+                    <img src="{{ $product->featured_image }}" alt="{{ $product->name }}" class="product-image" loading="lazy" decoding="async" width="300" height="300">
                 @else
                     <img src="https://via.placeholder.com/300x300?text={{ urlencode($product->name) }}" alt="{{ $product->name }}" class="product-image">
                 @endif

@@ -107,9 +107,17 @@ class CartController extends Controller
      */
     public function count()
     {
-        $cart = $this->getOrCreateCart();
-        // Return number of distinct items, not total quantity
-        return response()->json(['count' => $cart->items()->count()]);
+        $query = Cart::query();
+
+        if (Auth::guard('customer')->check()) {
+            $query->where('user_id', Auth::guard('customer')->id());
+        } else {
+            $query->where('session_id', Session::getId())->whereNull('user_id');
+        }
+
+        $cart = $query->withCount('items')->first();
+
+        return response()->json(['count' => $cart->items_count ?? 0]);
     }
 
     /**

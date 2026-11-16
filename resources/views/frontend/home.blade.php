@@ -28,45 +28,23 @@
                             <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
                             <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
                             <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="3" aria-label="Slide 4"></button>
-                            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="4" aria-label="Slide 5"></button>
-                            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="5" aria-label="Slide 6"></button>
                         </div>
                         <div class="carousel-inner">
                             <div class="carousel-item active">
-                                <img src="https://www.foodiaq.com/wp-content/uploads/2024/10/Biotin-ladoo.jpg" alt="Biotin Laddu" class="img-fluid rounded-3 shadow-lg">
-                                <div class="carousel-caption">
-                                    <h5>Biotin Laddu</h5>
-                                </div>
+                                <img src="https://www.foodiaq.com/wp-content/uploads/2024/10/Biotin-ladoo.jpg" alt="Biotin Laddu" class="img-fluid rounded-3 shadow-lg" fetchpriority="high" decoding="async" width="640" height="480">
+                                <div class="carousel-caption"><h5>Biotin Laddu</h5></div>
                             </div>
                             <div class="carousel-item">
-                                <img src="https://www.mygingergarlickitchen.com/wp-content/uploads/2021/12/dry-fruits-laddu-1.jpg" alt="Dry Fruit Laddu" class="img-fluid rounded-3 shadow-lg">
-                                <div class="carousel-caption">
-                                    <h5>Dry Fruit Laddu</h5>
-                                </div>
+                                <img src="https://www.mygingergarlickitchen.com/wp-content/uploads/2021/12/dry-fruits-laddu-1.jpg" alt="Dry Fruit Laddu" class="img-fluid rounded-3 shadow-lg" loading="lazy" decoding="async" width="640" height="480">
+                                <div class="carousel-caption"><h5>Dry Fruit Laddu</h5></div>
                             </div>
                             <div class="carousel-item">
-                                <img src="https://www.telanganapindivantalu.in/wp-content/uploads/2019/12/Nuvvula-laddu.jpg" alt="Nuvvula Laddu" class="img-fluid rounded-3 shadow-lg">
-                                <div class="carousel-caption">
-                                    <h5>Nuvvula Laddu</h5>
-                                </div>
+                                <img src="https://www.telanganapindivantalu.in/wp-content/uploads/2019/12/Nuvvula-laddu.jpg" alt="Nuvvula Laddu" class="img-fluid rounded-3 shadow-lg" loading="lazy" decoding="async" width="640" height="480">
+                                <div class="carousel-caption"><h5>Nuvvula Laddu</h5></div>
                             </div>
                             <div class="carousel-item">
-                                <img src="https://villkart.com/cdn/shop/files/Ragi-ladoo.jpg?v=1743229463" alt="Raggi Laddu" class="img-fluid rounded-3 shadow-lg">
-                                <div class="carousel-caption">
-                                    <h5>Raggi Laddu</h5>
-                                </div>
-                            </div>
-                            <div class="carousel-item">
-                                <img src="https://lakshmikrishnanaturals.com/admin_panel/storage/app/public/images/blogs/83591712596484.jpg" alt="Herbal Bath Powder" class="img-fluid rounded-3 shadow-lg">
-                                <div class="carousel-caption">
-                                    <h5>Herbal Bath Powder</h5>
-                                </div>
-                            </div>
-                            <div class="carousel-item">
-                                <img src="https://m.media-amazon.com/images/I/716G3zyjUTL.jpg" alt="Organic Loofa" class="img-fluid rounded-3 shadow-lg">
-                                <div class="carousel-caption">
-                                    <h5>Organic Loofa</h5>
-                                </div>
+                                <img src="https://villkart.com/cdn/shop/files/Ragi-ladoo.jpg?v=1743229463" alt="Raggi Laddu" class="img-fluid rounded-3 shadow-lg" loading="lazy" decoding="async" width="640" height="480">
+                                <div class="carousel-caption"><h5>Raggi Laddu</h5></div>
                             </div>
                         </div>
                         <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
@@ -254,7 +232,7 @@
                     <div class="product-card">
                         <div class="product-image position-relative">
                             @if($product->featured_image)
-                                <img src="{{ $product->featured_image }}" alt="{{ $product->name }}" class="img-fluid">
+                                <img src="{{ $product->featured_image }}" alt="{{ $product->name }}" class="img-fluid" loading="lazy" decoding="async" width="300" height="200">
                             @else
                                 <img src="https://via.placeholder.com/300x200/10b981/ffffff?text={{ urlencode($product->name) }}" alt="{{ $product->name }}" class="img-fluid">
                             @endif
@@ -405,22 +383,22 @@
                 <div class="row g-3">
                     <div class="col-6">
                         <div class="ratio ratio-4x3 rounded-4 overflow-hidden shadow-sm">
-                            <img src="https://images.unsplash.com/photo-1581091215367-59ab6b3131e6?auto=format&fit=crop&w=1200&q=60" alt="Quality Assurance Lab" class="w-100 h-100 object-fit-cover">
+                            <img src="https://images.unsplash.com/photo-1581091215367-59ab6b3131e6?auto=format&fit=crop&w=800&q=60" alt="Quality Assurance Lab" class="w-100 h-100 object-fit-cover" loading="lazy" decoding="async">
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="ratio ratio-4x3 rounded-4 overflow-hidden shadow-sm">
-                            <img src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=1200&q=60" alt="Fast Delivery" class="w-100 h-100 object-fit-cover">
+                            <img src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=800&q=60" alt="Fast Delivery" class="w-100 h-100 object-fit-cover" loading="lazy" decoding="async">
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="ratio ratio-4x3 rounded-4 overflow-hidden shadow-sm">
-                            <img src="https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&w=1200&q=60" alt="Nutritionist Consultation" class="w-100 h-100 object-fit-cover">
+                            <img src="https://images.unsplash.com/photo-1526256262350-7da7584cf5eb?auto=format&fit=crop&w=800&q=60" alt="Nutritionist Consultation" class="w-100 h-100 object-fit-cover" loading="lazy" decoding="async">
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="ratio ratio-4x3 rounded-4 overflow-hidden shadow-sm">
-                            <img src="https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&w=1200&q=60" alt="Secure Shopping" class="w-100 h-100 object-fit-cover">
+                            <img src="https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&w=800&q=60" alt="Secure Shopping" class="w-100 h-100 object-fit-cover" loading="lazy" decoding="async">
                         </div>
                     </div>
                 </div>

@@ -62,14 +62,25 @@ class Product extends Model
     }
 
     /**
+     * Reuse the eager-loaded featured image instead of querying per product.
+     */
+    protected function resolveFeaturedImage(): ?ProductImage
+    {
+        if ($this->relationLoaded('featuredImage')) {
+            return $this->getRelation('featuredImage');
+        }
+
+        return $this->featuredImage()->first();
+    }
+
+    /**
      * Get the featured image path for easy access
      */
     public function getFeaturedImageAttribute()
     {
-        $featuredImage = \App\Models\ProductImage::where('product_id', $this->id)
-            ->where('is_featured', true)
-            ->first();
-        return $featuredImage ? $featuredImage->image_path : null;
+        $featuredImage = $this->resolveFeaturedImage();
+
+        return $featuredImage->image_path ?? ($this->attributes['featured_image'] ?? null);
     }
 
     /**
@@ -77,10 +88,7 @@ class Product extends Model
      */
     public function getFeaturedImageUrlAttribute()
     {
-        $featuredImage = \App\Models\ProductImage::where('product_id', $this->id)
-            ->where('is_featured', true)
-            ->first();
-        return $featuredImage ? $featuredImage->image_url : null;
+        return $this->resolveFeaturedImage()?->image_url;
     }
 
     /**
@@ -88,10 +96,7 @@ class Product extends Model
      */
     public function getFeaturedImagePathAttribute()
     {
-        $featuredImage = \App\Models\ProductImage::where('product_id', $this->id)
-            ->where('is_featured', true)
-            ->first();
-        return $featuredImage ? $featuredImage->image_path : null;
+        return $this->resolveFeaturedImage()?->image_path;
     }
 
     public function stockMovements()

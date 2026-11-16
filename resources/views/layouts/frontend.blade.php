@@ -8,11 +8,15 @@
     <meta name="description" content="@yield('description', 'Premium nutrition products for a healthy lifestyle. Quality supplements, vitamins, and wellness products.')">
 
     <!-- Bootstrap CSS -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="{{ asset('css/frontend.css') }}">
 
@@ -47,21 +51,26 @@
             <div class="container">
                 <div class="row align-items-center">
                     <div class="col-md-3">
-                        <a href="{{ route('home') }}" class="logo">
-                            <i class="fas fa-leaf me-2"></i>Nutrition Store
-                        </a>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="nav-toggle" id="navToggle" aria-label="Open menu" aria-expanded="false">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                            <a href="{{ route('home') }}" class="logo">
+                                <i class="fas fa-leaf me-2"></i>Nutrition Store
+                            </a>
+                        </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="search-bar">
-                            <input type="text" class="search-input" placeholder="Search for products, brands, and more...">
-                            <button class="search-btn">
+                        <form action="{{ route('products.index') }}" method="GET" class="search-bar" role="search">
+                            <input type="search" name="search" value="{{ request('search') }}" class="search-input" placeholder="Search for products, brands, and more..." autocomplete="off">
+                            <button class="search-btn" type="submit" aria-label="Search">
                                 <i class="fas fa-search"></i>
                             </button>
-                        </div>
+                        </form>
                     </div>
                     <div class="col-md-3">
                         <div class="header-actions">
-                            <a href="#" class="header-icon">
+                            <a href="{{ auth('customer')->check() ? route('customer.wishlist') : route('login') }}" class="header-icon">
                                 <i class="fas fa-heart"></i>
                                 <span>Wishlist</span>
                             </a>
@@ -143,31 +152,9 @@
                                                                 </a>
                                                             @endforeach
                                                         @else
-                                                            <!-- Debug: Show what products are available for this category -->
-                                                            @php
-                                                                $personalCareProducts = collect();
-                                                                if($category->name == 'Personal Care' || $category->name == 'personal care' || $category->name == 'Personal care') {
-                                                                    $personalCareProducts = \App\Models\Product::where('is_active', true)
-                                                                        ->where(function($query) {
-                                                                            $query->where('name', 'like', '%Herbal Nourish Shampoo%')
-                                                                                  ->orWhere('name', 'like', '%Herbal Bath Powder%')
-                                                                                  ->orWhere('name', 'like', '%Organic Loofa%');
-                                                                        })
-                                                                        ->get();
-                                                                }
-                                                            @endphp
-
-                                                            @if($personalCareProducts->count() > 0)
-                                                                @foreach($personalCareProducts as $product)
-                                                                    <a href="{{ route('products.show', $product->slug) }}" class="mega-product-link">
-                                                                        {{ $product->name }}
-                                                                    </a>
-                                                                @endforeach
-                                                            @else
-                                                                <a href="{{ route('products.index') }}?category={{ $category->slug }}" class="mega-product-link">
-                                                                    View All {{ $category->name }} Products
-                                                                </a>
-                                                            @endif
+                                                            <a href="{{ route('products.index', ['category' => $category->slug]) }}" class="mega-product-link">
+                                                                View All {{ $category->name }} Products
+                                                            </a>
                                                         @endif
                                                     </div>
                                                 </div>
@@ -300,7 +287,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="{{ route('products.index', ['sale' => 1]) }}" class="nav-link">
                             <i class="fas fa-percent me-2"></i>Offers
                         </a>
                     </li>
@@ -374,20 +361,10 @@
     </footer>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
 
     <!-- Custom JS -->
     <script>
-        // Search functionality
-        document.querySelector('.search-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const query = this.value;
-                if (query.trim()) {
-                    window.location.href = `{{ route('search') }}?q=${encodeURIComponent(query)}`;
-                }
-            }
-        });
-
         // Cart functionality
         function updateCartCount(count) {
             const cartCountElement = document.querySelector('.cart-count');
@@ -538,8 +515,15 @@
 
         // Dropdown functionality
         document.addEventListener('DOMContentLoaded', function() {
-            // Load cart count on page load
-            loadCartCount();
+            const navToggle = document.getElementById('navToggle');
+            const mainNav = document.querySelector('.main-nav');
+            if (navToggle && mainNav) {
+                navToggle.addEventListener('click', function() {
+                    const open = mainNav.classList.toggle('is-open');
+                    navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    navToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+                });
+            }
 
             // Enhanced mega menu functionality
             const exploreProductsDropdown = document.getElementById('exploreProductsDropdown');

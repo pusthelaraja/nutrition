@@ -13,11 +13,20 @@ class FrontendController extends Controller
      */
     public function home()
     {
-        $products = Product::with(['images', 'featuredImage'])->where('is_active', true)->get();
-        $categories = Category::where('is_active', true)->withCount('products')->orderBy('sort_order')->get();
-        $featuredProducts = Product::with(['images', 'featuredImage'])->where('is_active', true)->where('is_featured', true)->limit(4)->get();
-        $newProducts = Product::with(['images', 'featuredImage'])->where('is_active', true)->latest()->limit(6)->get();
+        $categories = Category::where('is_active', true)
+            ->withCount(['products' => function ($query) {
+                $query->where('is_active', true);
+            }])
+            ->orderBy('sort_order')
+            ->get();
 
-        return view('frontend.home', compact('products', 'categories', 'featuredProducts', 'newProducts'));
+        $featuredProducts = Product::with(['category:id,name,slug', 'featuredImage'])
+            ->where('is_active', true)
+            ->where('is_featured', true)
+            ->latest()
+            ->limit(8)
+            ->get();
+
+        return view('frontend.home', compact('categories', 'featuredProducts'));
     }
 }

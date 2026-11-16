@@ -13,10 +13,16 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        // Debug: Log all request parameters
-        \Log::info('Product filter request:', $request->all());
+        $query = Product::with(['category:id,name,slug', 'featuredImage'])->where('is_active', true);
 
-        $query = Product::with(['category', 'images', 'featuredImage'])->where('is_active', true);
+        if ($request->filled('search')) {
+            $term = trim($request->search);
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', "%{$term}%")
+                    ->orWhere('sku', 'like', "%{$term}%")
+                    ->orWhere('short_description', 'like', "%{$term}%");
+            });
+        }
 
         // Filter by category
         if ($request->has('category') && $request->category) {
@@ -102,13 +108,7 @@ class ProductController extends Controller
      */
     public function show($slug)
     {
-        // Debug: Log the slug being requested
-        \Log::info('Product slug requested: ' . $slug);
-
         $product = Product::with(['category', 'images', 'featuredImage'])->where('is_active', true)->where('slug', $slug)->firstOrFail();
-
-        // Debug: Log the product found
-        \Log::info('Product found: ' . $product->name . ' (ID: ' . $product->id . ')');
 
         $relatedProducts = Product::with(['images', 'featuredImage'])->where('is_active', true)
             ->where('category_id', $product->category_id)
