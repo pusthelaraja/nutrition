@@ -4,7 +4,8 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Intervention\Image\Facades\Image;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 
 class ImagePickerService
 {
@@ -62,12 +63,10 @@ class ImagePickerService
             $pathInfo = pathinfo($fullPath);
             $thumbnailPath = $pathInfo['dirname'] . '/thumb_' . $pathInfo['basename'];
 
-            Image::make($fullPath)
-                ->resize($size, $size, function ($constraint) {
-                    $constraint->aspectRatio();
-                    $constraint->upsize();
-                })
-                ->save(Storage::disk('public')->path($thumbnailPath));
+            (new ImageManager(new Driver()))
+                ->decodePath($fullPath)
+                ->scaleDown(width: $size, height: $size)
+                ->save($thumbnailPath);
 
             return $thumbnailPath;
         } catch (\Exception $e) {

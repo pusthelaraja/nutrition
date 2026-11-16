@@ -19,6 +19,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Bcrypt Rehash On Login
+    |--------------------------------------------------------------------------
+    |
+    | Laravel rehashes passwords on login when the configured work factor
+    | changes. This has been the framework default since Laravel 11.
+    |
+    */
+
+    'rehash_on_login' => true,
+
+    /*
+    |--------------------------------------------------------------------------
     | Bcrypt Options
     |--------------------------------------------------------------------------
     |
